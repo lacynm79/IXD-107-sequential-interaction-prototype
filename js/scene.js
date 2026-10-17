@@ -126,9 +126,9 @@ App.scene = (() => {
   /* ---------- window cast ---------- */
   let lastCat = '';
   function catSVG(p, hiss) {
-    const key = `${p.toFixed(2)}|${hiss}`;
+    const ink = App.cfg.colCat;
+    const key = `${p.toFixed(2)}|${hiss}|${ink}`;
     if (key === lastCat) return; lastCat = key;
-    const ink = '#111';
     let s = '';
     // tail: lazy curl, or bristled straight up when spooked
     if (p < .05) s += `<path d="M14 -10 C34 -8 32 -30 38 -42 C41 -49 47 -50 50 -45" fill="none" stroke="${ink}" stroke-width="5" stroke-linecap="round"/>`;

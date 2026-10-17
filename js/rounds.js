@@ -7,13 +7,12 @@ App.rounds = (() => {
   const { clamp, approach, ease, easeOut, easeOutBack, rnd, wob, M } = S;
   const seq = () => App.seq;
   const CLOCK_C = { x: S.HOME.x, y: S.HOME.y - 80 };          // body centre when standing on the nightstand
-  const overClock = p => p.x > 590 && p.x < 850 && p.y > 330 && p.y < 612;
+  const overClock = (p, pad = 0) => p.x > 590 - pad && p.x < 850 + pad && p.y > 330 - pad && p.y < 612 + pad;
 
   /* =====================================================================
      1. Snooze: press and hold the snooze bar (Sticky Snooze Bar)
      ===================================================================== */
   const snooze = (() => {
-    const TRAVEL = 14;                                // bar travel in clock units, raised to flush
     const CONTACT_MS = 90, CONTACT_DEPTH = .14;
     let s;
     const easeInOut = x => -(Math.cos(Math.PI * x) - 1) / 2;
@@ -93,7 +92,7 @@ App.rounds = (() => {
       S.ringLook(t, s.ring, 1);
       c.hop = 0;
       c.jx = s.ring * 1.6 * M * Math.sin(t * .13) * 1.3;
-      c.bar = (s.depth + clickDip) * TRAVEL + tremble * .6;
+      c.bar = (s.depth + clickDip) * App.cfg.snoozeTravel + tremble * .6;   // bar travel in clock units
       A.ring(s.ring, 1);
       // the rooster crows along with the ring and goes quiet as it fades
       W.cast.rooster.rot = s.ring * 3 * M * Math.sin(t * .02);
@@ -120,12 +119,14 @@ App.rounds = (() => {
      2. Slap: slap the clock quiet, four times (Slap the Alarm Quiet)
      ===================================================================== */
   const slap = (() => {
+    // the study's four-slap curves; other slap counts sample them by fraction done
     const REST = [1, .84, .71, .6, .42];
     const RING = [1, .62, .4, .22, 0];
+    const at = (arr, f) => { const x = clamp(f, 0, 1) * 4, i = Math.min(3, Math.floor(x)); return arr[i] + (arr[i + 1] - arr[i]) * (x - i); };
     const REST_PALM = { x: 720, y: 372 };
     let s, timers = [], missT = null;
     function start(now) {
-      s = { hits: 0, done: false, bounce: null,
+      s = { hits: 0, done: false, bounce: null, lastSlap: -1e9,
         sy: { v: 1, t: 1, r: .1 }, sx: { v: 1, t: 1, r: .1 }, droop: { v: 0, t: 0, r: .1 }, tilt: { v: 0, t: 0, r: .03 },
         hy: { v: 0, t: 0, r: .1 }, hx: { v: 0, t: 0, r: .1 }, ring: { v: 1, t: 1, r: .05 }, bar: { v: 0, t: 0, r: .1 },
         lastInput: now, contact: false };
@@ -137,8 +138,11 @@ App.rounds = (() => {
     const barTopAt = sc => S.HOME.y + (-198) * S.CS * sc;
     function slapIt() {
       if (s.done) return;
-      s.lastInput = performance.now(); clear();
-      s.hits++; const h = s.hits, last = h >= 4, rest = REST[h];
+      const N = App.cfg.slapsNeeded, now = performance.now();
+      if (now - s.lastSlap < App.cfg.slapGapMs) return;   // too soon after the last one
+      s.lastSlap = now;
+      s.lastInput = now; clear();
+      s.hits++; const h = s.hits, last = h >= N, rest = at(REST, h / N);
       // contact: squish it down, droop the bells, cut the ring (deeper each slap)
       s.contact = true; s.bounce = null;
       const k = App.cfg.slapSquash;
@@ -156,7 +160,7 @@ App.rounds = (() => {
         s.bounce = { t0: performance.now(), from: { sy: s.sy.v, sx: s.sx.v, droop: s.droop.v, bar: s.bar.v, tilt: s.tilt.v } };
         A.pop();
       });
-      if (!last) later(650, () => set('ring', RING[h], .012));
+      if (!last) later(650, () => set('ring', at(RING, h / N), .012));
       else later(450, () => seq().done(1));
     }
     function miss(p) {
@@ -193,7 +197,7 @@ App.rounds = (() => {
       h.x = REST_PALM.x + s.hx.v; h.y = REST_PALM.y + s.hy.v + pat;
       seq().react('slapRing', ring);
     }
-    function down(p, e) { e.preventDefault(); if (overClock(p)) slapIt(); else miss(p); }
+    function down(p, e) { e.preventDefault(); if (overClock(p, App.cfg.slapPad)) slapIt(); else miss(p); }
     function key(e, isDown) { if (isDown && (e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); slapIt(); } }
     function stop() { clear(); }
     const pose = () => ({ mode: 'open', anchor: 'palm', x: REST_PALM.x, y: REST_PALM.y, rot: 0, fingers: 1 });
@@ -239,7 +243,7 @@ App.rounds = (() => {
       const now = performance.now();
       if (s.phase !== 'ready') { s.prevX = p.x; return; }
       // shaking counts once the fist has been brought up at the clock
-      if (!s.contact) { if (Math.hypot(p.x - CLOCK_C.x, p.y - CLOCK_C.y) < 380) makeContact(p, now); return; }
+      if (!s.contact) { if (Math.hypot(p.x - CLOCK_C.x, p.y - CLOCK_C.y) < App.cfg.fistReachPx) makeContact(p, now); return; }
       s.target = p; s.lastMove = now;
       if (s.missT0) { s.prevX = p.x; return; }        // mid-swing: no progress
       const dx = p.x - s.prevX;
@@ -248,7 +252,7 @@ App.rounds = (() => {
       if (s.lastDir && dir !== s.lastDir) {
         const amp = Math.abs(s.prevX - s.turnX);
         // forgiving: a modest swing within about a second counts
-        if (amp > 16 * K && now - s.turnTime < 1300) gain(now);
+        if (amp > App.cfg.fistSwingPx && now - s.turnTime < App.cfg.fistSwingMs) gain(now);
         s.turnX = s.prevX; s.turnTime = now;
       }
       s.lastDir = dir; s.prevX = p.x;
@@ -277,7 +281,7 @@ App.rounds = (() => {
         const dir = e.key === 'ArrowLeft' ? -1 : 1;
         s.contact = true; s.lastMove = now;
         s.target = { x: clamp(s.fist.x + dir * 60, 380, MAXX), y: s.fist.y };
-        if (s.keyDir && dir !== s.keyDir && now - s.keyT < 1300) gain(now);
+        if (s.keyDir && dir !== s.keyDir && now - s.keyT < App.cfg.fistSwingMs) gain(now);
         s.keyDir = dir; s.keyT = now;
       } else if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
@@ -325,7 +329,7 @@ App.rounds = (() => {
         h.x = HOMEF.x + amp * wob(now, .04, 0); h.y = HOMEF.y + amp * wob(now, .045, 3);
         if (t > 1700) { s.phase = 'ready'; placeFist(h.x, h.y, 0); h.fingers = 1; }
       } else if (s.phase === 'ready') {
-        if (now - s.lastGain > 2500 && s.rage > 0) s.rage = Math.max(0, s.rage - dt * .0004);
+        if (now - s.lastGain > App.cfg.fistFadeMs && s.rage > 0) s.rage = Math.max(0, s.rage - dt * .0004);
         const active = s.contact && s.target && now - s.lastMove < 1400;
         let bx, by, rot = 0;
         if (active) {
@@ -412,7 +416,7 @@ App.rounds = (() => {
       const k = ease2((p - .8) / .2), sx = E.x + 18 * u, sy = E.y - 18 * u;
       return { x: sx + (hover.x - sx) * k, y: sy + (hover.y - sy) * k, closed: false };
     }
-    const overIt = p => Math.hypot(p.x - c.x, p.y - (c.y - 10 * u)) < 82 * u;
+    const overIt = p => Math.hypot(p.x - c.x, p.y - (c.y - 10 * u)) < App.cfg.throwGrabPx;
     function down(p, e) {
       if (s.state !== 'idle' || !overIt(p)) return;
       e.preventDefault();
@@ -434,7 +438,7 @@ App.rounds = (() => {
       const vx = hand.vx + L * s.thd * Math.cos(s.th), vy = hand.vy - L * s.thd * Math.sin(s.th);
       const speed = Math.hypot(vx, vy);
       hand.mode = 'open';
-      if (speed > App.cfg.throwSpeed && s.dragDist > 70 * u) startFly(vx, vy, speed);
+      if (speed > App.cfg.throwSpeed && s.dragDist > App.cfg.throwDragPx) startFly(vx, vy, speed);
       else startDrop();
     }
     function key(e, isDown) {

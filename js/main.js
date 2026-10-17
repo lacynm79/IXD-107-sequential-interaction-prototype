@@ -63,7 +63,7 @@ App.seq = (() => {
     winText('!', 92, 100, { size: 34 });
     later(380, () => A.crow());
     say('The alarm is ringing.');
-    later(950, () => startRound(0));
+    later(cfg.wakeDelayMs, () => startRound(0));
   }
   function wakeUpdate(now, dt) {
     wakeR = Math.min(1, (now - t0) / 600);
@@ -247,7 +247,7 @@ App.seq = (() => {
     const c = W.clock, cast = W.cast;
     W.sky.dawn = 1; W.sky.midday = 1; cast.rooster.y = 180; cast.rooster.rot = -70; cast.neighbor.y = 0;
     c.text = fmt(MINUTES[i - 1]); c.bright = 1;
-    if (i === 1) c.bar = 14;
+    if (i === 1) c.bar = cfg.snoozeTravel;
     if (i >= 2) { W.sky.sunset = 1; cast.neighbor.y = 175; }
     if (i === 3) { W.sky.night = 1; cast.cat.on = true; Object.assign(c, { rot: 90, px: S.HOME.x + 160, py: S.FLOOR - 112 }); }
     S.moveCam(SHOTS[i - 1], 0);
@@ -311,7 +311,7 @@ App.seq = (() => {
   stage.addEventListener('pointercancel', up);
   stage.addEventListener('contextmenu', e => e.preventDefault());
   const bulb = document.getElementById('bulb');
-  const inPanel = e => !!(e.target && e.target.closest && e.target.closest('#panel'));
+  const inPanel = e => !!(e.target && e.target.closest && e.target.closest('.tpanel'));
   addEventListener('keydown', e => {
     if (document.activeElement === bulb || inPanel(e) || e.key === 'Tab' || e.metaKey || e.ctrlKey || e.altKey) return;
     if (phase === 'sleep') { e.preventDefault(); wake(); return; }

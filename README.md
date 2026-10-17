@@ -18,9 +18,15 @@ One continuous, linear sequence built from the four interaction studies below. S
 
 Each step only unlocks after the previous one succeeds. Between steps, a snooze lull shows the time skipping forward and the sky changing before the clock jolts back, louder and shakier. The rooster, the neighbor and the cat in the window react along the way.
 
-**Reset:** pull the chain on the light bulb in the top-left corner.
+**Reset:** pull the chain on the light bulb in the top-left corner (the round tag with the reset arrow).
 
-**Control panel (hidden):** the panel is switched off. To bring it back, set `SHOW_PANEL = true` in `js/config.js`, or add `?panel` to the page address to show it for one visit. When shown, it is a collapsible panel on the left that tunes durations, distances and motion curves (Linear, Ease In, Ease Out, Ease In-Out, Spring/Bounce) for each component, with units and ranges labeled. Changes apply to the next move. *Preview from* replays any step. *Restore defaults* returns to the saved values in `js/config.js`. *Copy settings* copies every current value along with an instruction to save them as the new defaults.
+**Triggers panel:** a collapsible panel on the left for what it takes to complete each step: hold time and bar travel for the snooze; slaps needed, minimum time between slaps and hit-area margin; shakes needed, minimum swing distance, maximum time per swing, how close to the clock shaking starts, and when the rage fades; grab radius, minimum drag distance and minimum fling speed for the throw; and the wake-up delay. Units and ranges are labeled, changes apply right away, *Show trigger zones* outlines the current hit area on the stage, and *Preview from* replays any step.
+
+**Colors panel:** a collapsible panel below it with a color picker for each part of the room, bed, sleeper, nightstand, alarm clock and cat, plus outlines. Colors change as you pick them. The rooster, neighbor, window frame, skies and ring lines are bitmaps from the studies and keep their own colors.
+
+Both panels have *Restore defaults* (back to the saved values in `js/config.js`) and *Copy settings* (copies every name and value with an instruction to save them as the new defaults). Hide either panel with `SHOW_TRIGGER_PANEL` / `SHOW_COLOR_PANEL` in `js/config.js`.
+
+**Motion panel (hidden):** the panel is switched off. To bring it back, set `SHOW_PANEL = true` in `js/config.js`, or add `?panel` to the page address to show it for one visit. When shown, it is a collapsible panel on the left that tunes durations, distances and motion curves (Linear, Ease In, Ease Out, Ease In-Out, Spring/Bounce) for each component, with units and ranges labeled. Changes apply to the next move. *Preview from* replays any step. *Restore defaults* returns to the saved values in `js/config.js`. *Copy settings* copies every current value along with an instruction to save them as the new defaults.
 
 **Keyboard:** any key to start, hold Space for the snooze, Space/Enter to slap, alternate ← → to shake the fist, Space/Enter to throw.
 
@@ -34,8 +40,8 @@ It's best viewed on a landscape screen. On an upright phone the whole room still
 | --- | --- |
 | `index.html` | The page: one SVG bedroom with a camera group, plus the reset bulb |
 | `css/style.css` | Layout and type |
-| `js/config.js` | Saved defaults, the panel's control list, and the easing curves |
-| `js/panel.js` | The floating control panel |
+| `js/config.js` | Saved defaults, the control lists for the three panels, easing curves, and color variables |
+| `js/panel.js` | The floating control panels (triggers, colors, and the hidden motion panel) |
 | `js/audio.js` | Synthesized ring (from Slap the Alarm Quiet), escalation levels, sound effects |
 | `js/scene.js` | Shared state and drawing: clock, hand and arm, blanket, window cast, camera, floating text |
 | `js/rounds.js` | The four steps, each adapted from its study's code |

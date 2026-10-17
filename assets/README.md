@@ -11,9 +11,9 @@ These drawings were extracted from the data URIs embedded in the interaction stu
 | `img/window-frame.png` | Slap the Alarm Quiet |
 | `img/ring-lines.png` | Slap the Alarm Quiet |
 | `img/sky-sunset.svg` | Slap the Alarm Quiet |
-| `img/clock-bell.svg` | Slap the Alarm Quiet |
-| `img/clock-snooze-bar.svg` | Slap the Alarm Quiet |
-| `img/clock-body.svg` | Slap the Alarm Quiet. The baked-in "12:09" text was removed so the page can draw the changing time. |
+| `img/clock-bell.svg` | Slap the Alarm Quiet (kept for reference; the page now draws it inline so its color can be tuned) |
+| `img/clock-snooze-bar.svg` | Slap the Alarm Quiet (kept for reference; drawn inline) |
+| `img/clock-body.svg` | Slap the Alarm Quiet. The baked-in "12:09" text was removed. Kept for reference; drawn inline so its colors can be tuned. |
 | `img/sky-night.svg` | Adapted from Shake Your Fist's inline night pane (gradient, stars, moon) |
 | `img/favicon.svg` | New: a small grayscale clock |
 

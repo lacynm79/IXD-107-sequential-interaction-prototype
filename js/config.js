@@ -43,7 +43,6 @@ window.App = window.App || {};
       ['joltHop', 'Jolt hop height', 'range', 0, 3, .05, '×', '1× = 62–98 room px'],
     ]],
     ['1 · Snooze', [
-      ['snoozeHoldMs', 'Hold time to snooze', 'range', 400, 3000, 50, 'ms'],
       ['snoozeReleaseEase', 'Bar spring-back motion', 'ease'],
     ]],
     ['2 · Slap', [
@@ -52,18 +51,92 @@ window.App = window.App || {};
       ['slapBounceEase', 'Bounce-back motion', 'ease'],
     ]],
     ['3 · Fist', [
-      ['fistShakes', 'Shakes to fill the rage', 'range', 1, 10, 1, 'shakes'],
       ['punchWindupMs', 'Punch wind-up', 'range', 100, 800, 10, 'ms'],
       ['punchEase', 'Punch strike motion', 'ease'],
     ]],
     ['4 · Throw', [
-      ['throwSpeed', 'Minimum fling speed', 'range', 300, 2500, 50, 'room px/s'],
       ['flightEase', 'Flight motion', 'ease'],
     ]],
     ['Ending', [
       ['burstDelayMs', 'Last gasp after the smash', 'range', 2500, 9000, 100, 'ms'],
       ['rollMs', 'Roll-over duration', 'range', 400, 3000, 50, 'ms'],
       ['rollEase', 'Roll-over motion', 'ease'],
+    ]],
+  ];
+
+  // Trigger panel: what it takes to complete each step (distances, times, counts).
+  // "room px" are units of the 1600-wide room; the clock drawing is 0.8 room px per unit.
+  const TRIGGER_SCHEMA = [
+    ['Opening', [
+      ['wakeDelayMs', 'Wake-up before the snooze unlocks', 'range', 300, 3000, 50, 'ms'],
+    ]],
+    ['1 · Snooze', [
+      ['snoozeHoldMs', 'Hold time to snooze', 'range', 400, 3000, 50, 'ms'],
+      ['snoozeTravel', 'Snooze bar travel', 'range', 4, 40, 1, 'clock px', '14 = flush with the clock top'],
+    ]],
+    ['2 · Slap', [
+      ['slapsNeeded', 'Slaps to silence it', 'range', 1, 8, 1, 'slaps'],
+      ['slapGapMs', 'Minimum time between slaps', 'range', 0, 1000, 10, 'ms', 'faster slaps are ignored'],
+      ['slapPad', 'Hit area around the clock', 'range', 0, 150, 5, 'room px', 'extra margin that still counts'],
+    ]],
+    ['3 · Fist', [
+      ['fistShakes', 'Shakes to fill the rage', 'range', 1, 10, 1, 'shakes'],
+      ['fistSwingPx', 'Minimum swing distance', 'range', 5, 150, 1, 'room px'],
+      ['fistSwingMs', 'Maximum time per swing', 'range', 300, 3000, 50, 'ms'],
+      ['fistReachPx', 'Start shaking within', 'range', 150, 900, 10, 'room px', 'distance from the clock'],
+      ['fistFadeMs', 'Rage starts fading after', 'range', 500, 8000, 100, 'ms', 'with no new shake'],
+    ]],
+    ['4 · Throw', [
+      ['throwGrabPx', 'Grab radius', 'range', 60, 260, 1, 'room px'],
+      ['throwDragPx', 'Minimum drag distance', 'range', 0, 400, 5, 'room px'],
+      ['throwSpeed', 'Minimum fling speed', 'range', 300, 2500, 50, 'room px/s'],
+    ]],
+  ];
+
+  // Color panel: one entry per recolorable part. The rooster, neighbor, window frame, skies and
+  // ring lines are bitmaps from the studies and keep their own colors.
+  const COLOR_SCHEMA = [
+    ['Room', [
+      ['colWall', 'Back wall', 'color'],
+      ['colSideWall', 'Side wall (the one it hits)', 'color'],
+      ['colFloor', 'Floor', 'color'],
+      ['colFloorLine', 'Floorboard lines', 'color'],
+      ['colBaseboard', 'Baseboard', 'color'],
+      ['colPage', 'Page edges', 'color'],
+      ['colInk', 'Outlines and lettering', 'color'],
+    ]],
+    ['Bed', [
+      ['colHeadboard', 'Headboard', 'color'],
+      ['colBedBase', 'Bed frame', 'color'],
+      ['colSheet', 'Sheet', 'color'],
+      ['colPillow', 'Pillow', 'color'],
+      ['colBlanket', 'Blanket', 'color'],
+      ['colBlanketCheck', 'Blanket checks', 'color'],
+      ['colLegs', 'Bed and nightstand legs', 'color'],
+    ]],
+    ['Sleeper', [
+      ['colHair', 'Hair', 'color'],
+      ['colSleeve', 'Arm (sleeve)', 'color'],
+      ['colSkin', 'Hand and fist', 'color'],
+      ['colCuff', 'Cuff', 'color'],
+    ]],
+    ['Nightstand', [
+      ['colStandTop', 'Top', 'color'],
+      ['colStandBody', 'Body', 'color'],
+      ['colDrawer', 'Drawer', 'color'],
+      ['colKnob', 'Knob', 'color'],
+    ]],
+    ['Alarm clock', [
+      ['colClockBody', 'Body', 'color'],
+      ['colClockFeet', 'Feet', 'color'],
+      ['colScreen', 'Screen', 'color'],
+      ['colDigits', 'Digits', 'color'],
+      ['colBell', 'Bells', 'color'],
+      ['colSnooze', 'Snooze bar', 'color'],
+    ]],
+    ['Window cast', [
+      ['colCat', 'Cat', 'color'],
+      ['colCatRim', 'Cat outline glow', 'color'],
     ]],
   ];
 
@@ -78,20 +151,44 @@ window.App = window.App || {};
     fistShakes: 3, punchWindupMs: 280, punchEase: 'easeIn',
     throwSpeed: 900, flightEase: 'linear',
     burstDelayMs: 5200, rollMs: 1300, rollEase: 'easeInOut',
+    // trigger panel
+    wakeDelayMs: 950, snoozeTravel: 14,
+    slapsNeeded: 4, slapGapMs: 0, slapPad: 0,
+    fistSwingPx: 21, fistSwingMs: 1300, fistReachPx: 380, fistFadeMs: 2500,
+    throwGrabPx: 131, throwDragPx: 112,
+    // color panel
+    colWall: '#ececec', colSideWall: '#bcbcbc', colFloor: '#d2d2d2', colFloorLine: '#bcbcbc', colBaseboard: '#bdbdbd',
+    colPage: '#d6d6d6', colInk: '#222222',
+    colHeadboard: '#8c8c8c', colBedBase: '#9c9c9c', colSheet: '#e2e2e2', colPillow: '#f2f2f2',
+    colBlanket: '#a9a9a9', colBlanketCheck: '#8f8f8f', colLegs: '#7a7a7a',
+    colHair: '#2b2b2b', colSleeve: '#8c8c8c', colSkin: '#d0d0d0', colCuff: '#6f6f6f',
+    colStandTop: '#9a9a9a', colStandBody: '#8a8a8a', colDrawer: '#9c9c9c', colKnob: '#d9d9d9',
+    colClockBody: '#7a7a7a', colClockFeet: '#d9d9d9', colScreen: '#2b2b2b', colDigits: '#cfcfcf', colBell: '#e2e2e2', colSnooze: '#e2e2e2',
+    colCat: '#111111', colCatRim: '#d9d9d9',
   };
 
-  // The control panel is hidden. Set SHOW_PANEL to true to bring the same panel back
+  // The motion panel is hidden. Set SHOW_PANEL to true to bring the same panel back
   // (or add ?panel to the page URL to show it for one visit).
   const SHOW_PANEL = false;
+  // The trigger and color panels are shown. Set these to false to hide them again.
+  const SHOW_TRIGGER_PANEL = true;
+  const SHOW_COLOR_PANEL = true;
 
   const listeners = [];
   App.cfg = { ...DEFAULTS };
   App.config = {
-    SCHEMA, DEFAULTS, EASE, EASE_LABELS,
+    SCHEMA, TRIGGER_SCHEMA, COLOR_SCHEMA, DEFAULTS, EASE, EASE_LABELS,
+    showColorPanel: SHOW_COLOR_PANEL,
     showPanel: SHOW_PANEL || /[?&]panel\b/.test(location.search),
+    showTriggerPanel: SHOW_TRIGGER_PANEL,
     ease: name => EASE[App.cfg[name]] || EASE.easeInOut,
     set(key, value) { App.cfg[key] = value; listeners.forEach(fn => fn(key, value)); },
-    restore() { Object.keys(DEFAULTS).forEach(k => App.config.set(k, DEFAULTS[k])); },
+    restore(keys = Object.keys(DEFAULTS)) { keys.forEach(k => App.config.set(k, DEFAULTS[k])); },
     onChange(fn) { listeners.push(fn); },
   };
+
+  // colors reach the drawing through CSS custom properties (see "component colors" in css/style.css)
+  const applyColor = (k, v) => { if (k.startsWith('col')) document.documentElement.style.setProperty('--' + k, v); };
+  Object.keys(DEFAULTS).forEach(k => applyColor(k, App.cfg[k]));
+  App.config.onChange(applyColor);
 })();

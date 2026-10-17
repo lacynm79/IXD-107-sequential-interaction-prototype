@@ -16,32 +16,48 @@
     <defs>
       <!-- grayscale gingham for the blanket -->
       <pattern id="gingham" width="36" height="36" patternUnits="userSpaceOnUse" patternTransform="rotate(-8)">
-        <rect width="36" height="36" fill="#a9a9a9"/>
-        <rect width="18" height="36" fill="#8f8f8f" opacity=".55"/>
-        <rect width="36" height="18" fill="#8f8f8f" opacity=".55"/>
+        <rect class="col-blanket" width="36" height="36" fill="#a9a9a9"/>
+        <rect class="col-blanketCheck" width="18" height="36" fill="#8f8f8f" opacity=".55"/>
+        <rect class="col-blanketCheck" width="36" height="18" fill="#8f8f8f" opacity=".55"/>
         <path d="M0 9h36M0 27h36" stroke="#c4c4c4" stroke-width="1.5" opacity=".6"/>
       </pattern>
       <pattern id="floorboards" width="160" height="140" patternUnits="userSpaceOnUse">
-        <rect width="160" height="140" fill="#d2d2d2"/>
-        <path d="M0 46h160M0 93h160M60 0v46M130 46v47M30 93v47" stroke="#bcbcbc" stroke-width="3"/>
+        <rect class="col-floor" width="160" height="140" fill="#d2d2d2"/>
+        <path d="M0 46h160M0 93h160M60 0v46M130 46v47M30 93v47" class="col-floorLine" stroke="#bcbcbc" stroke-width="3"/>
       </pattern>
       <!-- pale rim so the black cat reads against the night sky -->
       <filter id="catRim" x="-30%" y="-30%" width="160%" height="160%">
         <feMorphology in="SourceAlpha" operator="dilate" radius="1.8" result="fat"/>
-        <feFlood flood-color="#d9d9d9"/>
+        <feFlood class="col-catRim" flood-color="#d9d9d9"/>
         <feComposite in2="fat" operator="in" result="rim"/>
         <feGaussianBlur in="rim" stdDeviation="2.2" result="glow"/>
         <feMerge><feMergeNode in="glow"/><feMergeNode in="rim"/><feMergeNode in="SourceGraphic"/></feMerge>
       </filter>
+      <!-- clock parts (from the Slap study's SVG files), inlined so their colors can be tuned -->
+      <g id="clockBodyArt" transform="scale(2)">
+        <rect class="col-clockFeet" x="24" y="80" width="14" height="12" rx="2" fill="#d9d9d9" stroke="#222222" stroke-width="3" stroke-linejoin="round"/>
+        <rect class="col-clockFeet" x="102" y="80" width="14" height="12" rx="2" fill="#d9d9d9" stroke="#222222" stroke-width="3" stroke-linejoin="round"/>
+        <rect class="col-clockBody" x="12" y="8" width="116" height="76" rx="18" fill="#7a7a7a" stroke="#222222" stroke-width="3" stroke-linejoin="round"/>
+        <rect class="col-screen" x="28" y="22" width="84" height="42" rx="5" fill="#2b2b2b" stroke="#222222" stroke-width="3" stroke-linejoin="round"/>
+      </g>
+      <g id="bellArt" transform="scale(2)">
+        <line x1="28" y1="40" x2="28" y2="14" stroke="#222222" stroke-width="3" stroke-linecap="round"/>
+        <circle class="col-bell" cx="28" cy="10" r="4" fill="#e2e2e2" stroke="#222222" stroke-width="3"/>
+        <path class="col-bell" d="M6,40 A22,22 0 0 1 50,40 Z" fill="#e2e2e2" stroke="#222222" stroke-width="3" stroke-linejoin="round"/>
+      </g>
+      <g id="snoozeArt" transform="scale(2)">
+        <rect class="col-snooze" x="6" y="5" width="44" height="13" rx="3" fill="#e2e2e2" stroke="#222222" stroke-width="3" stroke-linejoin="round"/>
+        <line x1="12" y1="9.5" x2="44" y2="9.5" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+      </g>
       <clipPath id="paneClip"><rect x="0" y="0" width="311" height="269"/></clipPath>
     </defs>
 
     <g id="shake">
     <g id="cam">
       <!-- room shell -->
-      <rect x="-3000" y="-3000" width="7600" height="3762" fill="#ececec"/>
+      <rect class="col-wall" x="-3000" y="-3000" width="7600" height="3762" fill="#ececec"/>
       <rect x="-3000" y="760" width="7600" height="3000" fill="url(#floorboards)"/>
-      <rect x="-3000" y="752" width="7600" height="12" fill="#bdbdbd" stroke="#222" stroke-width="3"/>
+      <rect class="col-baseboard" x="-3000" y="752" width="7600" height="12" fill="#bdbdbd" stroke="#222" stroke-width="3"/>
 
       <!-- window: four skies stacked, the cast lives inside the pane -->
       <g id="window" transform="translate(900 150)">
@@ -60,33 +76,33 @@
 
       <!-- the wall the clock gets thrown into (from Throw the Clock) -->
       <g id="wall">
-        <rect x="1460" y="-3000" width="3000" height="6760" fill="#bcbcbc"/>
+        <rect class="col-sideWall" x="1460" y="-3000" width="3000" height="6760" fill="#bcbcbc"/>
         <line x1="1466" y1="-3000" x2="1466" y2="3760" stroke="#222" stroke-width="3"/>
         <g id="wallCracks"></g>
       </g>
 
       <!-- bed: headboard, frame, pillow, hair -->
       <g id="bed">
-        <rect x="96" y="420" width="44" height="345" rx="10" fill="#8c8c8c" stroke="#222" stroke-width="3"/>
-        <rect x="128" y="592" width="486" height="112" rx="10" fill="#9c9c9c" stroke="#222" stroke-width="3"/>
-        <rect x="140" y="700" width="22" height="60" fill="#7a7a7a" stroke="#222" stroke-width="3"/>
-        <rect x="576" y="700" width="22" height="60" fill="#7a7a7a" stroke="#222" stroke-width="3"/>
-        <rect x="128" y="572" width="490" height="36" rx="12" fill="#e2e2e2" stroke="#222" stroke-width="3"/>
-        <path d="M172 560 C168 520 222 514 268 516 C320 518 344 528 340 560 C336 586 300 590 256 588 C206 586 176 584 172 560 Z" fill="#f2f2f2" stroke="#222" stroke-width="3"/>
+        <rect class="col-headboard" x="96" y="420" width="44" height="345" rx="10" fill="#8c8c8c" stroke="#222" stroke-width="3"/>
+        <rect class="col-bedBase" x="128" y="592" width="486" height="112" rx="10" fill="#9c9c9c" stroke="#222" stroke-width="3"/>
+        <rect class="col-legs" x="140" y="700" width="22" height="60" fill="#7a7a7a" stroke="#222" stroke-width="3"/>
+        <rect class="col-legs" x="576" y="700" width="22" height="60" fill="#7a7a7a" stroke="#222" stroke-width="3"/>
+        <rect class="col-sheet" x="128" y="572" width="490" height="36" rx="12" fill="#e2e2e2" stroke="#222" stroke-width="3"/>
+        <path class="col-pillow" d="M172 560 C168 520 222 514 268 516 C320 518 344 528 340 560 C336 586 300 590 256 588 C206 586 176 584 172 560 Z" fill="#f2f2f2" stroke="#222" stroke-width="3"/>
         <g id="hair">
-          <path d="M276 566 C266 540 286 522 312 526 C328 528 336 538 330 552 C340 548 346 556 340 566 Z" fill="#2b2b2b" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
+          <path d="M276 566 C266 540 286 522 312 526 C328 528 336 538 330 552 C340 548 346 556 340 566 Z" class="col-hair" fill="#2b2b2b" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
           <path d="M290 528 q-6 -14 6 -18 M306 526 q2 -16 14 -14 M322 532 q10 -10 18 -2" fill="none" stroke="#222" stroke-width="3" stroke-linecap="round"/>
         </g>
       </g>
 
       <!-- nightstand -->
       <g id="nightstand">
-        <rect x="596" y="600" width="252" height="22" rx="4" fill="#9a9a9a" stroke="#222" stroke-width="3"/>
-        <rect x="610" y="620" width="224" height="124" fill="#8a8a8a" stroke="#222" stroke-width="3"/>
-        <rect x="632" y="642" width="180" height="40" rx="4" fill="#9c9c9c" stroke="#222" stroke-width="3"/>
-        <circle cx="722" cy="662" r="6" fill="#d9d9d9" stroke="#222" stroke-width="3"/>
-        <rect x="616" y="742" width="18" height="18" fill="#7a7a7a" stroke="#222" stroke-width="3"/>
-        <rect x="810" y="742" width="18" height="18" fill="#7a7a7a" stroke="#222" stroke-width="3"/>
+        <rect class="col-standTop" x="596" y="600" width="252" height="22" rx="4" fill="#9a9a9a" stroke="#222" stroke-width="3"/>
+        <rect class="col-standBody" x="610" y="620" width="224" height="124" fill="#8a8a8a" stroke="#222" stroke-width="3"/>
+        <rect class="col-drawer" x="632" y="642" width="180" height="40" rx="4" fill="#9c9c9c" stroke="#222" stroke-width="3"/>
+        <circle class="col-knob" cx="722" cy="662" r="6" fill="#d9d9d9" stroke="#222" stroke-width="3"/>
+        <rect class="col-legs" x="616" y="742" width="18" height="18" fill="#7a7a7a" stroke="#222" stroke-width="3"/>
+        <rect class="col-legs" x="810" y="742" width="18" height="18" fill="#7a7a7a" stroke="#222" stroke-width="3"/>
       </g>
 
       <!-- alarm clock: local origin is the bottom centre, parts in the Slap study's 320x300 layout -->
@@ -94,42 +110,42 @@
         <g id="clockRing">
           <g id="lines"><image href="assets/img/ring-lines.png" x="-180" y="-59.5" width="360" height="85"/></g>
         </g>
-        <g id="bellL"><image href="assets/img/clock-bell.svg" x="-56" y="-80" width="112" height="92"/></g>
-        <g id="bellR"><image href="assets/img/clock-bell.svg" x="-56" y="-80" width="112" height="92"/></g>
-        <g id="bar"><image href="assets/img/clock-snooze-bar.svg" x="-56" y="-208" width="112" height="44"/></g>
-        <image href="assets/img/clock-body.svg" x="-140" y="-200" width="280" height="200"/>
+        <g id="bellL"><use href="#bellArt" x="-56" y="-80"/></g>
+        <g id="bellR"><use href="#bellArt" x="-56" y="-80"/></g>
+        <g id="bar"><use href="#snoozeArt" x="-56" y="-208"/></g>
+        <use href="#clockBodyArt" x="-140" y="-200"/>
         <text id="display" x="0" y="-114" text-anchor="middle" dominant-baseline="central">5:59</text>
         <g id="clockCracks"></g>
       </g>
-      <g id="looseBell" opacity="0"><image href="assets/img/clock-bell.svg" x="-56" y="-80" width="112" height="92"/></g>
+      <g id="looseBell" opacity="0"><use href="#bellArt" x="-56" y="-80"/></g>
 
       <!-- the sleeper's arm and hand (hand + fist drawings from Throw the Clock) -->
       <g id="arm">
-        <rect id="armRect" x="0" y="-25" width="200" height="50" rx="25" fill="#8c8c8c" stroke="#222" stroke-width="3"/>
+        <rect id="armRect" class="col-sleeve" x="0" y="-25" width="200" height="50" rx="25" fill="#8c8c8c" stroke="#222" stroke-width="3"/>
         <path id="armCrease" fill="none" stroke="#6f6f6f" stroke-width="2.5" stroke-linecap="round"/>
       </g>
       <g id="hand">
         <g transform="translate(32 40)">
           <g id="fingers">
-            <rect x="40" y="-22" width="44" height="11" rx="5.5" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-            <rect x="40" y="-11" width="46" height="11" rx="5.5" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-            <rect x="40" y="0" width="43" height="11" rx="5.5" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-            <rect x="40" y="11" width="36" height="11" rx="5.5" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
+            <rect x="40" y="-22" width="44" height="11" rx="5.5" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
+            <rect x="40" y="-11" width="46" height="11" rx="5.5" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
+            <rect x="40" y="0" width="43" height="11" rx="5.5" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
+            <rect x="40" y="11" width="36" height="11" rx="5.5" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
           </g>
-          <rect x="-6" y="-23" width="56" height="46" rx="15" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-          <rect x="16" y="-33" width="32" height="11" rx="5.5" transform="rotate(-14 16 -28)" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-          <rect x="-26" y="-26" width="20" height="52" rx="6" fill="#6f6f6f" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
+          <rect x="-6" y="-23" width="56" height="46" rx="15" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
+          <rect x="16" y="-33" width="32" height="11" rx="5.5" transform="rotate(-14 16 -28)" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
+          <rect x="-26" y="-26" width="20" height="52" rx="6" class="col-cuff" fill="#6f6f6f" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
         </g>
       </g>
       <g id="fist" opacity="0">
         <g transform="translate(30 32)">
-          <rect x="-6" y="-25" width="58" height="50" rx="18" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-          <circle cx="50" cy="-16" r="8" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-          <circle cx="53" cy="-5" r="8" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-          <circle cx="53" cy="6" r="8" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-          <circle cx="49" cy="17" r="7.5" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-          <rect x="12" y="-7" width="36" height="11" rx="5.5" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-          <rect x="-24" y="-27" width="20" height="54" rx="6" fill="#6f6f6f" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
+          <rect x="-6" y="-25" width="58" height="50" rx="18" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
+          <circle cx="50" cy="-16" r="8" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
+          <circle cx="53" cy="-5" r="8" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
+          <circle cx="53" cy="6" r="8" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
+          <circle cx="49" cy="17" r="7.5" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
+          <rect x="12" y="-7" width="36" height="11" rx="5.5" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
+          <rect x="-24" y="-27" width="20" height="54" rx="6" class="col-cuff" fill="#6f6f6f" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
         </g>
       </g>
 
@@ -164,7 +180,11 @@
       <path d="M55 120 h10 M55 127 h10" stroke="#222" stroke-width="3" stroke-linecap="round"/>
       <g id="chain">
         <path id="chainLine" d="M72 112 L72 176" stroke="#555" stroke-width="2.5" stroke-dasharray="3 3"/>
-        <circle id="chainBead" cx="72" cy="182" r="6" fill="#d9d9d9" stroke="#222" stroke-width="3"/>
+        <g id="chainBead">
+          <circle cx="72" cy="196" r="20" fill="#fff" stroke="#222" stroke-width="3"/>
+          <path d="M83 196 a11 11 0 1 1 -3.2 -7.8" fill="none" stroke="#222" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M80.6 179.6 l-0.8 8.6 l-8.4 -1.4" fill="none" stroke="#222" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
       </g>
     </g>
     <g id="firefly">
