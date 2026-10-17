@@ -209,3 +209,37 @@ body { background: var(--colPage, #d6d6d6); }
 #stage .col-bell { fill: var(--colBell); }
 #stage .col-snooze { fill: var(--colSnooze); }
 #stage .col-catRim { flood-color: var(--colCatRim); }
+
+/* ---------- color panel: item menu + full-spectrum picker ---------- */
+.tpanel .itemRow { display: flex; gap: 6px; align-items: center; margin: 8px 0; }
+.tpanel .itemRow select { flex: 1; min-width: 0; }
+.tpanel button.step {
+  width: 32px; height: 32px; flex: none; padding: 0;
+  border: 1.5px solid var(--ink); border-radius: 8px; background: #fff; color: var(--ink);
+  font: 700 18px/1 ui-sans-serif, system-ui, sans-serif; cursor: pointer;
+}
+.tpanel button.step:hover { background: #e4e4e4; }
+.tpanel .pickRow { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
+.tpanel .itemSwatch { width: 30px; height: 30px; flex: none; border: 1.5px solid var(--ink); border-radius: 8px; }
+.tpanel .hexIn {
+  width: 78px; min-height: 30px; box-sizing: border-box; padding: 4px 6px;
+  border: 1.5px solid var(--ink); border-radius: 8px; background: #fff; color: var(--ink);
+  font: 600 12px ui-monospace, Menlo, Consolas, monospace;
+}
+.tpanel .nativePick { width: 34px; height: 30px; flex: none; padding: 2px; border: 1.5px solid var(--ink); border-radius: 8px; background: #fff; cursor: pointer; }
+.tpanel button.act.small { flex: 1; min-height: 30px; font-size: 11px; padding: 4px 6px; }
+.tpanel .svBox, .tpanel .hueBar { position: relative; border: 1.5px solid var(--ink); border-radius: 8px; cursor: crosshair; touch-action: none; }
+.tpanel .svBox { height: 130px; margin-bottom: 8px; }
+.tpanel .hueBar {
+  height: 18px; margin-bottom: 10px; cursor: ew-resize;
+  background: linear-gradient(to right, #f00 0%, #ff0 16.66%, #0f0 33.33%, #0ff 50%, #00f 66.66%, #f0f 83.33%, #f00 100%);
+}
+.tpanel .svBox .knob, .tpanel .hueBar .knob {
+  position: absolute; width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid #fff; box-shadow: 0 0 0 1.5px #222; transform: translate(-50%, -50%); pointer-events: none;
+}
+.tpanel .hueBar .knob { top: 50%; background: transparent; }
+.tpanel .svBox:focus-visible, .tpanel .hueBar:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.tpanel .swatches { display: grid; grid-template-columns: repeat(9, 1fr); gap: 5px; margin-bottom: 4px; }
+.tpanel .sw { aspect-ratio: 1; min-height: 22px; padding: 0; border: 1.5px solid var(--ink); border-radius: 6px; cursor: pointer; }
+.tpanel .sw:hover { transform: scale(1.12); }

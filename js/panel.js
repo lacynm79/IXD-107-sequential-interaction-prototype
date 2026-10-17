@@ -28,7 +28,7 @@
     return 'M' + pts.join(' L');
   }
 
-  function buildPanel({ id, title, label, schema, copyTitle, note, storageKey, extra }) {
+  function buildPanel({ id, title, label, schema, copyTitle, note, storageKey, extra, custom }) {
     const panel = h('aside', { id, class: 'tpanel', 'aria-label': label });
     const bodyId = id + 'Body';
     const toggle = h('button', { class: 'panelToggle', type: 'button', 'aria-expanded': 'true', 'aria-controls': bodyId },
@@ -54,7 +54,9 @@
 
     // controls
     const inputs = {}, keys = [];
-    schema.forEach(([group, rows], gi) => {
+    // a panel can draw its own controls (the color picker) instead of one row per setting
+    if (custom) { schema.forEach(([, rows]) => rows.forEach(([key]) => keys.push(key))); custom(body, inputs); }
+    else schema.forEach(([group, rows], gi) => {
       const det = h('details', gi < 2 ? { open: '' } : {}, h('summary', { text: group }));
       rows.forEach(([key, text, kind, min, max, step, unit, hint]) => {
         keys.push(key);
@@ -210,11 +212,118 @@
     });
     zoneOverlay(p, box);
   }
+  /* ---------- color picker: choose an item, then pick from the full spectrum ---------- */
+  const hexToRgb = hex => { const n = parseInt(hex.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+  const rgbToHex = (r, g, b) => '#' + [r, g, b].map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
+  function rgbToHsv(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+    let hh = 0;
+    if (d) hh = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    return [(hh * 60 + 360) % 360, mx ? d / mx : 0, mx];
+  }
+  function hsvToHex(hh, sat, val) {
+    const f = n => { const k = (n + hh / 60) % 6; return val - val * sat * Math.max(0, Math.min(k, 4 - k, 1)); };
+    return rgbToHex(f(5) * 255, f(3) * 255, f(1) * 255);
+  }
+  const SWATCHES = ['#111111', '#222222', '#444444', '#6f6f6f', '#9a9a9a', '#c4c4c4', '#e2e2e2', '#ffffff',
+    '#b03030', '#e0663a', '#e8b23a', '#f2e3b3', '#5f9e4a', '#2f7f7a', '#3a6fb0', '#7a4fb0', '#c45a8f', '#7a5230'];
+
+  function colorPicker(body, inputs) {
+    const items = [];
+    const sel = h('select', { id: 'colorItem', 'aria-label': 'Item to color' });
+    C.COLOR_SCHEMA.forEach(([group, rows]) => {
+      const og = h('optgroup', { label: group });
+      rows.forEach(([key, text]) => { og.append(h('option', { value: key, text })); items.push(key); });
+      sel.append(og);
+    });
+    const prev = h('button', { type: 'button', class: 'step', 'aria-label': 'Previous item', text: '‹' });
+    const next = h('button', { type: 'button', class: 'step', 'aria-label': 'Next item', text: '›' });
+    const sw = h('span', { class: 'itemSwatch', 'aria-hidden': 'true' });
+
+    const sv = h('div', { class: 'svBox', role: 'slider', tabindex: '0', 'aria-label': 'Saturation and brightness' }, h('span', { class: 'knob' }));
+    const hue = h('div', { class: 'hueBar', role: 'slider', tabindex: '0', 'aria-label': 'Hue', 'aria-valuemin': '0', 'aria-valuemax': '360' }, h('span', { class: 'knob' }));
+    const hex = h('input', { type: 'text', class: 'hexIn', maxlength: '7', spellcheck: 'false', 'aria-label': 'Hex color' });
+    const native = h('input', { type: 'color', class: 'nativePick', 'aria-label': 'System color picker' });
+    const resetItem = h('button', { type: 'button', class: 'act small', text: 'Item default' });
+    const swatches = h('div', { class: 'swatches' });
+    SWATCHES.forEach(c => {
+      const b = h('button', { type: 'button', class: 'sw', 'aria-label': c, title: c });
+      b.style.background = c;
+      b.addEventListener('click', () => commit(c, true));
+      swatches.append(b);
+    });
+
+    body.append(
+      h('div', { class: 'itemRow' }, prev, sel, next),
+      h('div', { class: 'pickRow' }, sw, hex, native, resetItem),
+      sv, hue, swatches);
+
+    let key = items[0], H = 0, Sat = 0, Val = 0;
+    function paint() {
+      const cur = hsvToHex(H, Sat, Val);
+      sv.style.background = `linear-gradient(to top, #000, rgba(0,0,0,0)), linear-gradient(to right, #fff, ${hsvToHex(H, 1, 1)})`;
+      sv.firstChild.style.left = (Sat * 100) + '%'; sv.firstChild.style.top = ((1 - Val) * 100) + '%';
+      sv.firstChild.style.background = cur;
+      hue.firstChild.style.left = (H / 360 * 100) + '%';
+      hue.setAttribute('aria-valuenow', Math.round(H));
+      sv.setAttribute('aria-valuetext', `saturation ${Math.round(Sat * 100)}%, brightness ${Math.round(Val * 100)}%`);
+    }
+    function load(k) {
+      key = k; sel.value = k;
+      const c = cfg[k], [hh, ss, vv] = rgbToHsv(...hexToRgb(c));
+      if (ss > 0.01) H = hh;                         // grays have no hue: keep the last one
+      Sat = ss; Val = vv;
+      hex.value = c; native.value = c; sw.style.background = c;
+      paint();
+    }
+    function commit(c, reload) {
+      C.set(key, c);
+      hex.value = c; native.value = c; sw.style.background = c;
+      if (reload) load(key); else paint();
+    }
+    const fromHsv = () => commit(hsvToHex(H, Sat, Val));
+
+    function drag(el, onMove) {
+      el.addEventListener('pointerdown', e => {
+        e.preventDefault(); el.setPointerCapture(e.pointerId); el.focus();
+        const move = ev => { const r = el.getBoundingClientRect(); onMove(Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (ev.clientY - r.top) / r.height))); };
+        move(e);
+        const up = () => { el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up); };
+        el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+      });
+    }
+    drag(sv, (x, y) => { Sat = x; Val = 1 - y; fromHsv(); });
+    drag(hue, x => { H = x * 360; if (Sat < .05) Sat = .6; if (Val < .05) Val = .7; fromHsv(); });
+    // keyboard: arrows nudge the square and the hue strip
+    sv.addEventListener('keydown', e => {
+      const d = e.shiftKey ? .1 : .02;
+      if (e.key === 'ArrowLeft') Sat = Math.max(0, Sat - d); else if (e.key === 'ArrowRight') Sat = Math.min(1, Sat + d);
+      else if (e.key === 'ArrowUp') Val = Math.min(1, Val + d); else if (e.key === 'ArrowDown') Val = Math.max(0, Val - d); else return;
+      e.preventDefault(); fromHsv();
+    });
+    hue.addEventListener('keydown', e => {
+      const d = e.shiftKey ? 30 : 5;
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') H = (H - d + 360) % 360; else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') H = (H + d) % 360; else return;
+      e.preventDefault(); fromHsv();
+    });
+    hex.addEventListener('input', () => { const v = hex.value.trim(); if (/^#[0-9a-f]{6}$/i.test(v)) commit(v.toLowerCase(), true); });
+    native.addEventListener('input', () => commit(native.value, true));
+    sel.addEventListener('change', () => load(sel.value));
+    prev.addEventListener('click', () => load(items[(items.indexOf(key) - 1 + items.length) % items.length]));
+    next.addEventListener('click', () => load(items[(items.indexOf(key) + 1) % items.length]));
+    resetItem.addEventListener('click', () => commit(C.DEFAULTS[key], true));
+    // Restore defaults refreshes the picker for whichever item is showing
+    items.forEach(k => { inputs[k] = { set: () => { if (k === key) load(k); } }; });
+    load(key);
+  }
+
   if (C.showColorPanel) {
     buildPanel({
       id: 'colorPanel', title: 'Colors', label: 'Color controls',
       schema: C.COLOR_SCHEMA, copyTitle: 'Five More Minutes: color settings', storageKey: 'fmm-color-panel-open',
-      note: 'Colors change on the stage as you pick them. The rooster, neighbor, window frame, skies and ring lines are drawings from the studies and keep their own colors.',
+      custom: colorPicker,
+      note: 'Pick an item, then drag in the color square and the rainbow strip. The stage updates as you go. The rooster, neighbor, window frame, skies and ring lines are drawings from the studies and keep their own colors.',
     });
   }
   if (C.showPanel) {
