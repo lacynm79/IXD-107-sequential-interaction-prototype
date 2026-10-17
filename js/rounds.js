@@ -127,7 +127,7 @@ App.rounds = (() => {
     const REST_PALM = { x: 720, get y() { return S.HOME.y - 198 * S.CS - App.cfg.slapLift; } };
     let s, timers = [], missT = null;
     function start(now) {
-      s = { hits: 0, done: false, bounce: null, lastSlap: -1e9,
+      s = { hits: 0, done: false, busy: false, bounce: null, lastSlap: -1e9,
         sy: { v: 1, t: 1, r: .1 }, sx: { v: 1, t: 1, r: .1 }, droop: { v: 0, t: 0, r: .1 }, tilt: { v: 0, t: 0, r: .03 },
         hy: { v: 0, t: 0, r: .1 }, hx: { v: 0, t: 0, r: .1 }, ring: { v: 1, t: 1, r: .05 }, bar: { v: 0, t: 0, r: .1 },
         lastInput: now, contact: false };
@@ -138,10 +138,10 @@ App.rounds = (() => {
     function clear() { timers.forEach(clearTimeout); timers = []; clearTimeout(missT); }
     const barTopAt = sc => S.HOME.y + (-198) * S.CS * sc;
     function slapIt() {
-      if (s.done) return;
+      if (s.done || s.busy) return;                     // wait until the clock is back to full size
       const N = App.cfg.slapsNeeded, now = performance.now();
       if (now - s.lastSlap < App.cfg.slapGapMs) return;   // too soon after the last one
-      s.lastSlap = now;
+      s.lastSlap = now; s.busy = true;
       s.lastInput = now; clear();
       s.hits++; const h = s.hits, last = h >= N, rest = at(REST, h / N);
       // contact: squish it down, droop the bells, cut the ring (deeper each slap)
@@ -182,7 +182,7 @@ App.rounds = (() => {
         const k = clamp((t - s.bounce.t0) / App.cfg.slapBounceMs, 0, 1), e = App.config.ease('slapBounceEase')(k), b = s.bounce.from;
         const go = (n, to) => { s[n].v = s[n].t = b[n] + (to - b[n]) * e; };
         go('sy', 1); go('sx', 1); go('droop', 0); go('bar', 0); go('tilt', 0);
-        if (k >= 1) s.bounce = null;
+        if (k >= 1) { s.bounce = null; s.busy = false; }
       }
       const c = W.clock, ring = s.ring.v;
       const jr = S.ringLook(t, ring, 2);
@@ -198,7 +198,7 @@ App.rounds = (() => {
       h.x = REST_PALM.x + s.hx.v; h.y = REST_PALM.y + s.hy.v + pat;
       seq().react('slapRing', ring);
     }
-    function down(p, e) { e.preventDefault(); if (overClock(p, App.cfg.slapPad)) slapIt(); else miss(p); }
+    function down(p, e) { e.preventDefault(); if (s.busy) return; if (overClock(p, App.cfg.slapPad)) slapIt(); else miss(p); }
     function key(e, isDown) { if (isDown && (e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); slapIt(); } }
     function stop() { clear(); }
     const pose = () => ({ mode: 'open', anchor: 'palm', x: REST_PALM.x, y: REST_PALM.y, rot: 0, fingers: 1 });
