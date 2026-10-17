@@ -72,7 +72,7 @@ App.scene = (() => {
   const ANGER = { 1: { jit: 4, hop: 0, swing: 11, rate: .065 }, 2: { jit: 7, hop: 5, swing: 14, rate: .08 },
                   3: { jit: 10, hop: 11, swing: 19, rate: .095 }, 4: { jit: 14, hop: 18, swing: 25, rate: .11 } };
   function ringLook(now, r, lvl) {
-    const c = W.clock, A = ANGER[lvl] || ANGER[1], m = r * M;
+    const c = W.clock, A = ANGER[lvl] || ANGER[1], m = r * M * App.cfg.shake;
     c.jx = (Math.random() - .5) * A.jit * m;
     c.hop = Math.abs(Math.sin(now * .028)) * A.hop * m;
     c.swing = A.swing * m * Math.sin(now * A.rate);
@@ -194,7 +194,7 @@ App.scene = (() => {
     end:    { x: 820, y: 470, s: 1.12 },
   };
   let camMove = null;
-  function moveCam(name, dur) {
+  function moveCam(name, dur = App.cfg.camMs) {
     const to = SHOTS[name];
     if (!dur) { Object.assign(W.cam, to); camMove = null; return; }
     camMove = { from: { ...W.cam }, to, t0: performance.now(), dur };
@@ -208,7 +208,7 @@ App.scene = (() => {
   addEventListener('resize', fitViewBox); fitViewBox();
   function drawCam(now) {
     if (camMove) {
-      const k = clamp((now - camMove.t0) / camMove.dur, 0, 1), e = ease(k);
+      const k = clamp((now - camMove.t0) / camMove.dur, 0, 1), e = App.config.ease('camEase')(k);
       W.cam.x = lerp(camMove.from.x, camMove.to.x, e);
       W.cam.y = lerp(camMove.from.y, camMove.to.y, e);
       W.cam.s = lerp(camMove.from.s, camMove.to.s, e);

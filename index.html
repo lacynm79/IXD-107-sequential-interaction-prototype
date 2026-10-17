@@ -25,6 +25,14 @@
         <rect width="160" height="140" fill="#d2d2d2"/>
         <path d="M0 46h160M0 93h160M60 0v46M130 46v47M30 93v47" stroke="#bcbcbc" stroke-width="3"/>
       </pattern>
+      <!-- pale rim so the black cat reads against the night sky -->
+      <filter id="catRim" x="-30%" y="-30%" width="160%" height="160%">
+        <feMorphology in="SourceAlpha" operator="dilate" radius="1.8" result="fat"/>
+        <feFlood flood-color="#d9d9d9"/>
+        <feComposite in2="fat" operator="in" result="rim"/>
+        <feGaussianBlur in="rim" stdDeviation="2.2" result="glow"/>
+        <feMerge><feMergeNode in="glow"/><feMergeNode in="rim"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
       <clipPath id="paneClip"><rect x="0" y="0" width="311" height="269"/></clipPath>
     </defs>
 
@@ -44,7 +52,7 @@
           <image id="skyNight" href="assets/img/sky-night.svg" width="311" height="269" preserveAspectRatio="xMidYMid slice" opacity="0"/>
           <g id="rooster"><image href="assets/img/rooster.png" x="-55" y="-151" width="111" height="151"/></g>
           <g id="neighbor"><image href="assets/img/neighbor.png" x="-79" y="-150" width="157" height="150"/></g>
-          <g id="cat"></g>
+          <g id="cat" filter="url(#catRim)"></g>
           <g id="windowFx"></g>
         </g>
         <image href="assets/img/window-frame.png" width="360" height="300"/>
@@ -168,9 +176,11 @@
   </svg>
 </button>
 
+<script src="js/config.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/scene.js"></script>
 <script src="js/rounds.js"></script>
 <script src="js/main.js"></script>
+<script src="js/panel.js"></script>
 </body>
 </html>

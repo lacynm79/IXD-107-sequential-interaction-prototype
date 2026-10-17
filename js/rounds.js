@@ -14,7 +14,7 @@ App.rounds = (() => {
      ===================================================================== */
   const snooze = (() => {
     const TRAVEL = 14;                                // bar travel in clock units, raised to flush
-    const CONTACT_MS = 90, CONTACT_DEPTH = .14, HOLD_MS = 1000;
+    const CONTACT_MS = 90, CONTACT_DEPTH = .14;
     let s;
     const easeInOut = x => -(Math.cos(Math.PI * x) - 1) / 2;
     function start(now) {
@@ -59,7 +59,7 @@ App.rounds = (() => {
         } else {
           // slower the deeper it goes
           const base = Math.max(s.from, CONTACT_DEPTH);
-          const span = HOLD_MS * (1 - (base - CONTACT_DEPTH) / (1 - CONTACT_DEPTH));
+          const span = App.cfg.snoozeHoldMs * (1 - (base - CONTACT_DEPTH) / (1 - CONTACT_DEPTH));
           const eStart = s.from < CONTACT_DEPTH ? CONTACT_MS : 0;
           const x = clamp((e - eStart) / Math.max(span, 1), 0, 1);
           d = base + (1 - base) * easeOut(x);
@@ -73,9 +73,10 @@ App.rounds = (() => {
       } else if (s.phase === 'releasing') {
         const dur = 700 + 1100 * s.from;
         const p = clamp((t - s.t0) / dur, 0, 1);
-        s.depth = s.from * (1 - easeInOut(p));
+        const back = App.config.ease('snoozeReleaseEase')(p);
+        s.depth = s.from * (1 - back);
         s.contact = approach(s.contact, 0, 80, dt);
-        s.ring = Math.max(s.ring, easeInOut(p));
+        s.ring = Math.max(s.ring, clamp(back, 0, 1));
         if (p >= 1) { s.phase = 'ringing'; s.idleSince = t; }
       } else if (s.phase === 'done') {
         const e = t - s.doneAt;
@@ -124,7 +125,7 @@ App.rounds = (() => {
     const REST_PALM = { x: 720, y: 372 };
     let s, timers = [], missT = null;
     function start(now) {
-      s = { hits: 0, done: false,
+      s = { hits: 0, done: false, bounce: null,
         sy: { v: 1, t: 1, r: .1 }, sx: { v: 1, t: 1, r: .1 }, droop: { v: 0, t: 0, r: .1 }, tilt: { v: 0, t: 0, r: .03 },
         hy: { v: 0, t: 0, r: .1 }, hx: { v: 0, t: 0, r: .1 }, ring: { v: 1, t: 1, r: .05 }, bar: { v: 0, t: 0, r: .1 },
         lastInput: now, contact: false };
@@ -138,20 +139,22 @@ App.rounds = (() => {
       if (s.done) return;
       s.lastInput = performance.now(); clear();
       s.hits++; const h = s.hits, last = h >= 4, rest = REST[h];
-      // contact: sink in, squash, droop, cut the ring
-      s.contact = true;
-      const sc = last ? REST[4] * .82 : rest * .55;
-      set('sy', sc, .35); set('sx', last ? 1.32 : 1.22, .35); set('droop', 58, .35); set('bar', 10, .35); set('ring', 0, .6);
+      // contact: squish it down, droop the bells, cut the ring (deeper each slap)
+      s.contact = true; s.bounce = null;
+      const k = App.cfg.slapSquash;
+      const sc = 1 - (1 - (last ? REST[4] * .82 : rest * .55)) * k;
+      ['sy', 'sx', 'droop', 'bar', 'tilt'].forEach(n => { s[n].t = s[n].v; });
+      set('sy', sc, .35); set('sx', 1 + (last ? .32 : .22) * k, .35); set('droop', 58, .35); set('bar', 10, .35); set('ring', 0, .6);
       set('hx', 0, .3); set('hy', barTopAt(sc) + 10 - REST_PALM.y, .38);
       setTimeout(A.thud, 40);
       // the neighbor flinches every time
       seq().react('slap', h);
       if (last) s.done = true;
-      // during: slow peel, slow partial reshape, muffled return
-      later(260, () => { s.contact = false; set('hy', 0, last ? .012 : .022); });
-      later(380, () => {
-        set('sy', rest, last ? .02 : .03); set('sx', last ? 1.3 : 1 + (1 - rest) * .32, .03);
-        set('droop', last ? 70 : h * 13, .025); set('bar', last ? 10 : h * 2, .03); set('tilt', last ? 6.5 : h * 1.8, .02);
+      // the hand peels off and the clock springs back up to full height, a little quieter each time
+      later(260, () => { s.contact = false; set('hy', 0, last ? .03 : .05); });
+      later(300, () => {
+        s.bounce = { t0: performance.now(), from: { sy: s.sy.v, sx: s.sx.v, droop: s.droop.v, bar: s.bar.v, tilt: s.tilt.v } };
+        A.pop();
       });
       if (!last) later(650, () => set('ring', RING[h], .012));
       else later(450, () => seq().done(1));
@@ -169,6 +172,13 @@ App.rounds = (() => {
     function update(t, dt) {
       const f = Math.min(3, dt / 16.7);
       ['sy', 'sx', 'droop', 'tilt', 'hy', 'hx', 'ring', 'bar'].forEach(k => { const o = s[k]; o.v += (o.t - o.v) * (1 - Math.pow(1 - o.r, f)); });
+      if (s.bounce) {
+        // bounce-back: from the squished shape to full height with the chosen curve
+        const k = clamp((t - s.bounce.t0) / App.cfg.slapBounceMs, 0, 1), e = App.config.ease('slapBounceEase')(k), b = s.bounce.from;
+        const go = (n, to) => { s[n].v = s[n].t = b[n] + (to - b[n]) * e; };
+        go('sy', 1); go('sx', 1); go('droop', 0); go('bar', 0); go('tilt', 0);
+        if (k >= 1) s.bounce = null;
+      }
       const c = W.clock, ring = s.ring.v;
       const jr = S.ringLook(t, ring, 2);
       c.sx = s.sx.v; c.sy = s.sy.v; c.droop = s.droop.v; c.bar = s.bar.v; c.rot = s.tilt.v + jr;
@@ -187,7 +197,7 @@ App.rounds = (() => {
     function key(e, isDown) { if (isDown && (e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); slapIt(); } }
     function stop() { clear(); }
     const pose = () => ({ mode: 'open', anchor: 'palm', x: REST_PALM.x, y: REST_PALM.y, rot: 0, fingers: 1 });
-    return { start, update, down, key, stop, pose, hint: 'Slap the clock. It takes a few.' };
+    return { start, update, down, key, stop, pose, hint: 'Slap the clock down. It takes a few.' };
   })();
 
   /* =====================================================================
@@ -197,7 +207,6 @@ App.rounds = (() => {
     const K = 1.3;                                     // study units to room units
     const HOMEF = { x: 515, y: 440 };
     const MAXX = 548;                                  // the fist can't reach the clock without the punch
-    const NEED = 5;
     let s;
     function start(now) {
       s = { phase: 'clench', t0: now, rage: 0, lastGain: 0, fist: { ...HOMEF }, target: null,
@@ -208,10 +217,11 @@ App.rounds = (() => {
     function gain(now) {
       s.rage = Math.floor(s.rage) + 1;
       s.lastGain = now;
-      const word = s.rage < 2 ? 'grr' : s.rage < 4 ? 'grrr' : 'GRRR';
-      S.spawnText(word, s.fist.x + rnd(-40, 40), s.fist.y - 80, { size: 18 + s.rage * 8, dur: 700, rise: 44, rot: rnd(-14, 14) });
+      const fill = s.rage / App.cfg.fistShakes;          // how full the rage is, 0..1
+      const word = fill < .4 ? 'grr' : fill < .8 ? 'grrr' : 'GRRR';
+      S.spawnText(word, s.fist.x + rnd(-40, 40), s.fist.y - 80, { size: 22 + fill * 36, dur: 700, rise: 44, rot: rnd(-14, 14) });
       A.growl(s.rage);
-      if (s.rage >= NEED) { s.phase = 'punch'; s.punchT0 = now; s.from = { ...s.fist }; s.missT0 = 0; }
+      if (s.rage >= App.cfg.fistShakes) { s.phase = 'punch'; s.punchT0 = now; s.from = { ...s.fist }; s.missT0 = 0; }
     }
     function doHit(now) {
       s.hit = true; s.hitT = now;
@@ -237,7 +247,8 @@ App.rounds = (() => {
       const dir = Math.sign(dx);
       if (s.lastDir && dir !== s.lastDir) {
         const amp = Math.abs(s.prevX - s.turnX);
-        if (amp > 25 * K && now - s.turnTime < 900) gain(now);
+        // forgiving: a modest swing within about a second counts
+        if (amp > 16 * K && now - s.turnTime < 1300) gain(now);
         s.turnX = s.prevX; s.turnTime = now;
       }
       s.lastDir = dir; s.prevX = p.x;
@@ -266,7 +277,7 @@ App.rounds = (() => {
         const dir = e.key === 'ArrowLeft' ? -1 : 1;
         s.contact = true; s.lastMove = now;
         s.target = { x: clamp(s.fist.x + dir * 60, 380, MAXX), y: s.fist.y };
-        if (s.keyDir && dir !== s.keyDir && now - s.keyT < 900) gain(now);
+        if (s.keyDir && dir !== s.keyDir && now - s.keyT < 1300) gain(now);
         s.keyDir = dir; s.keyT = now;
       } else if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
@@ -338,26 +349,28 @@ App.rounds = (() => {
             rot = Math.sin(k * Math.PI) * 22;
           } else s.missT0 = 0;
         }
-        const amp = ((active ? 1.6 : 1) + s.rage * 2.1) * J * K;
-        const f = .035 + s.rage * .006;
+        const r5 = s.rage / App.cfg.fistShakes * 5;      // rage on the study's 0..5 scale
+        const amp = ((active ? 1.6 : 1) + r5 * 2.1) * J * K;
+        const f = .035 + r5 * .006;
         placeFist(bx + amp * wob(now, f, 0), by + amp * wob(now, f * 1.17, 3), rot + amp * .6 * wob(now, f * .9, 6));
-        if (active) drawPrickles(bx, by, 5 + Math.floor(s.rage * 4.5), (5 + s.rage * 3.6) * K);
+        if (active) drawPrickles(bx, by, 5 + Math.floor(r5 * 4.5), (5 + r5 * 3.6) * K);
         else drawPrickles(bx, by, 3, 5 * K);
       } else if (s.phase === 'punch') {
         const t = now - s.punchT0;
         const pull = { x: s.from.x - 70 * K, y: s.from.y + 12 * K }, hitPt = { x: 560, y: CLOCK_C.y - 6 };
         const L = (a, b, k) => ({ x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k });
         let p, rot = 0, amp = 0;
-        if (t < 280) {
-          const k = ease(t / 280); p = L(s.from, pull, k); rot = -12 * k; amp = 9 * J;
+        const WU = App.cfg.punchWindupMs, strike = App.config.ease('punchEase');
+        if (t < WU) {
+          const k = ease(t / WU); p = L(s.from, pull, k); rot = -12 * k; amp = 9 * J;
           drawPrickles(p.x, p.y, 28, 24 * K);
-        } else if (t < 400) {
-          let k = (t - 280) / 120; k = k * k; p = L(pull, hitPt, k); rot = -12 + 12 * k;
+        } else if (t < WU + 120) {
+          const k = strike((t - WU) / 120); p = L(pull, hitPt, k); rot = -12 + 12 * k;
           S.el.prickles.setAttribute('d', '');
         } else {
           if (!s.hit) doHit(now);
-          p = { x: hitPt.x - 14 * Math.sin(clamp((t - 400) / 500, 0, 1) * Math.PI), y: hitPt.y };
-          if (t > 900) s.phase = 'done';
+          p = { x: hitPt.x - 14 * Math.sin(clamp((t - WU - 120) / 500, 0, 1) * Math.PI), y: hitPt.y };
+          if (t > WU + 620) s.phase = 'done';
         }
         placeFist(p.x + amp * wob(now, .09, 0), p.y + amp * wob(now, .1, 3), rot);
       }
@@ -421,7 +434,7 @@ App.rounds = (() => {
       const vx = hand.vx + L * s.thd * Math.cos(s.th), vy = hand.vy - L * s.thd * Math.sin(s.th);
       const speed = Math.hypot(vx, vy);
       hand.mode = 'open';
-      if (speed > 900 && s.dragDist > 70 * u) startFly(vx, vy, speed);
+      if (speed > App.cfg.throwSpeed && s.dragDist > 70 * u) startFly(vx, vy, speed);
       else startDrop();
     }
     function key(e, isDown) {
@@ -510,7 +523,7 @@ App.rounds = (() => {
         if (k >= 1) { s.state = 'idle'; s.mimeStart = T + 1; A.clank(.5); }
       }
       if (s.state === 'fly') {
-        s.fly.t += dts; const k = Math.min(1, s.fly.t / s.fly.dur), kk = k * .7 + k * k * .3;
+        s.fly.t += dts; const k = Math.min(1, s.fly.t / s.fly.dur), kk = App.config.ease('flightEase')(k);
         c.x = bez(s.fly.P0.x, s.fly.P1.x, s.fly.P2.x, s.fly.P3.x, kk);
         c.y = bez(s.fly.P0.y, s.fly.P1.y, s.fly.P2.y, s.fly.P3.y, kk);
         c.rot = s.fly.r0 + (s.fly.r1 - s.fly.r0) * kk;

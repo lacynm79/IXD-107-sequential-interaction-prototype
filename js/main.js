@@ -20,6 +20,7 @@ App.seq = (() => {
     tweens.push({ obj, key, from: null, to, t0: performance.now() + delay, dur, fn });
   }
   const easeIn = k => k * k * k;
+  const cfg = App.cfg, cE = name => App.config.ease(name);
   function runTweens(now) {
     tweens = tweens.filter(t => {
       if (now < t.t0) return true;
@@ -89,21 +90,21 @@ App.seq = (() => {
     if (i === 0) {
       // Sticky Snooze Bar's payoff: midday, the rooster drops out, the neighbor appears
       tween(W.cast.rooster, 'rot', -70, 420);
-      tween(W.cast.rooster, 'y', 180, 700, 260, easeIn);
+      tween(W.cast.rooster, 'y', 180, 700, 260, cE('castOutEase'));
       winText('bawk?', 80, 96, { size: 20, dur: 900 });
-      tween(W.sky, 'midday', 1, 1600);
-      tween(W.cast.neighbor, 'y', 0, 900, 1600);
+      tween(W.sky, 'midday', 1, 1600 * cfg.skyScale, 0, cE('skyEase'));
+      tween(W.cast.neighbor, 'y', 0, cfg.castInMs, 1600, cE('castInEase'));
       later(2500, () => winText('...?', 214, 92, { size: 22, dur: 1200 }));
       later(700, () => lull(1));
     } else if (i === 1) {
       // Slap's payoff: sunset, and the neighbor gives up
-      tween(W.sky, 'sunset', 1, 1500, 250);
+      tween(W.sky, 'sunset', 1, 1500 * cfg.skyScale, 250, cE('skyEase'));
       winText('FINALLY', 214, 96, { size: 22, dur: 1100 });
-      tween(W.cast.neighbor, 'y', 175, 550, 350, easeIn);
+      tween(W.cast.neighbor, 'y', 175, 550, 350, cE('castOutEase'));
       later(900, () => lull(2));
     } else if (i === 2) {
       // Shake Your Fist's payoff: night falls, a cat hops onto the sill
-      later(600, () => tween(W.sky, 'night', 1, 2600));
+      later(600, () => tween(W.sky, 'night', 1, 2600 * cfg.skyScale, 0, cE('skyEase')));
       later(2900, () => { W.cast.cat.on = true; catHop = performance.now(); A.meow(); });
       later(2000, () => lull(3));
     } else if (i === 3) {
@@ -133,15 +134,15 @@ App.seq = (() => {
     if (R[next - 1].stop) R[next - 1].stop();
     const c = W.clock; c.jx = 0; c.hop = 0;
     tween(c, 'swing', 0, 300); tween(c, 'linesOp', 0, 300);
-    moveHand(REST, 900, 0, easeIn);
-    later(950, () => { W.hand.mode = 'open'; S.setAnchor('palm'); W.hand.fingers = 1; });
-    S.moveCam(SHOTS[next], 2400);
+    moveHand(REST, cfg.handOutMs, 0, cE('handOutEase'));
+    later(cfg.handOutMs + 50, () => { W.hand.mode = 'open'; S.setAnchor('palm'); W.hand.fingers = 1; });
+    S.moveCam(SHOTS[next]);
     later(600, () => A.snore());
     // the minutes roll forward while they sleep
-    roll = { from: MINUTES[next - 1], to: MINUTES[next], t0: t0 + 800, dur: 1600 };
+    roll = { from: MINUTES[next - 1], to: MINUTES[next], t0: t0 + 800, dur: Math.max(400, cfg.lullMs - 2000) };
     say('Snoozing...');
-    later(3150, () => { tween(W.clock, 'sy', .9, 300); tween(W.clock, 'sx', 1.06, 300); });   // the clock winds up
-    later(3600, () => startJolt(next));
+    later(cfg.lullMs - 450, () => { tween(W.clock, 'sy', .9, 300); tween(W.clock, 'sx', 1.06, 300); });   // the clock winds up
+    later(cfg.lullMs, () => startJolt(next));
   }
   function lullUpdate(now) {
     if (roll) {
@@ -165,25 +166,25 @@ App.seq = (() => {
       later(160, () => { winText('#@!', 214, 92, { size: 26 }); A.yell(); });
     } else if (next === 2) {
       // the neighbor pops back up, furious, then gives up again
-      tween(n, 'y', 0, 260);
+      tween(n, 'y', 0, cfg.castInMs * .29, 0, cE('castInEase'));
       later(260, () => { winText('AGAIN?!', 214, 92, { size: 24, dur: 1300 }); A.yell(); });
-      later(1500, () => tween(n, 'y', 175, 500, 0, easeIn));
+      later(1500, () => tween(n, 'y', 175, 500, 0, cE('castOutEase')));
     } else if (next === 3) {
       tween(cat, 'puff', .4, 200);
       later(60, () => { winText('!', 244, 150, { size: 26, dur: 700 }); A.hiss(.4); });
       tween(cat, 'puff', .15, 1400, 900);
     }
-    moveHand(R[next].pose(), 600, 80);
+    moveHand(R[next].pose(), cfg.handInMs, 80, cE('handInEase'));
   }
   function joltUpdate(now) {
-    const k = clamp((now - jolt.t0) / 560, 0, 1), e = ease(k), f = jolt.from, c = W.clock, lvl = jolt.next + 1;
+    const k = clamp((now - jolt.t0) / cfg.joltMs, 0, 1), e = cE('joltEase')(k), f = jolt.from, c = W.clock, lvl = jolt.next + 1;
     // hops up off the nightstand, shakes off the last round, lands angry
     c.px = lerp(f.px, S.HOME.x, e); c.py = lerp(f.py, S.HOME.y, e);
     c.rot = lerp(f.rot, 0, e); c.droop = lerp(f.droop, 0, e); c.bar = lerp(f.bar, 0, e);
     const land = k > .8 ? Math.sin((k - .8) / .2 * Math.PI) * .14 : 0;
     c.sy = lerp(f.sy, 1, e) - land; c.sx = lerp(f.sx, 1, e) + land * .6;
     S.ringLook(now, Math.min(1, k * 3), lvl);
-    c.hop += Math.sin(k * Math.PI) * (50 + lvl * 12);
+    c.hop += Math.sin(k * Math.PI) * (50 + lvl * 12) * cfg.joltHop;
     A.ring(Math.min(1, k * 4), lvl);
     // the hand fumbles back out from under the covers
     const j = (1 - k) * 18 * M; W.hand.x += rnd(-j, j); W.hand.y += rnd(-j, j);
@@ -202,28 +203,29 @@ App.seq = (() => {
     winText('HSSS!', 244, 136, { size: 28, dur: 1000 });
     later(1100, () => { cat.hiss = false; tween(cat, 'puff', .25, 2200); });
     later(250, () => { W.hand.mode = 'open'; S.setAnchor('palm'); W.hand.alpha = 1; moveHand(REST, 1000); });
-    later(1500, () => S.moveCam('end', 2600));
+    later(1500, () => S.moveCam('end'));
+    const B = cfg.burstDelayMs;
     later(2600, () => { sleepy = true; nextZ = performance.now(); say('Quiet, finally.'); });
     // ...a few seconds later: one last gasp
-    later(5200, () => {
+    later(B, () => {
       sleepy = false;
       A.burst(.42); R[3].burst(420);
       S.spawnText('BRRRI—', 1300, 560, { size: 40, dur: 700, rise: 20, rot: -4 });
       W.shake = .25;
       tween(cat, 'puff', 1, 80); cat.hiss = true; A.hiss(.8);
       // and the cat is out of here
-      later(220, () => { tween(cat, 'y', 8, 90); later(100, () => tween(cat, 'y', -360, 480, 0, easeIn)); });
+      later(220, () => { tween(cat, 'y', 8, 90); later(100, () => tween(cat, 'y', -360, 480, 0, cE('castOutEase'))); });
     });
     // the hand rises, and it stops
-    later(5290, () => moveHand({ x: 600, y: 320, rot: -78 }, 200, 0, k => 1 - Math.pow(1 - k, 3)));
-    later(6150, () => moveHand(REST, 520, 0, easeIn));
-    later(6650, () => {
+    later(B + 90, () => moveHand({ x: 600, y: 320, rot: -78 }, 200, 0, k => 1 - Math.pow(1 - k, 3)));
+    later(B + 950, () => moveHand(REST, 520, 0, easeIn));
+    later(B + 1450, () => {
       A.sigh();
       S.spawnText('*sigh*', 340, 500, { size: 26, dur: 1600, rise: 30, fill: '#555' });
-      tween(W.blanket, 'roll', 1, 1300, 200);
+      tween(W.blanket, 'roll', 1, cfg.rollMs, 200, cE('rollEase'));
       later(450, () => A.grumble());
     });
-    later(8000, () => { phase = 'done'; sleepy = true; say('Asleep. Pull the light chain to start again.'); });
+    later(B + 1650 + cfg.rollMs, () => { phase = 'done'; sleepy = true; say('Asleep. Pull the light chain to start again.'); });
   }
 
   /* ---------- reset ---------- */
@@ -235,6 +237,22 @@ App.seq = (() => {
     S.moveCam('sleep', 0);
     A.ring(0, 1);
     say('Someone is asleep. Tap anywhere to disturb them.');
+  }
+
+  // control panel preview: jump straight to round i (0 = snooze ... 3 = throw), with the room
+  // set up as if the earlier rounds happened
+  function jumpTo(i) {
+    resetAll(); A.unlock();
+    if (i === 0) { wake(); return; }
+    const c = W.clock, cast = W.cast;
+    W.sky.dawn = 1; W.sky.midday = 1; cast.rooster.y = 180; cast.rooster.rot = -70; cast.neighbor.y = 0;
+    c.text = fmt(MINUTES[i - 1]); c.bright = 1;
+    if (i === 1) c.bar = 14;
+    if (i >= 2) { W.sky.sunset = 1; cast.neighbor.y = 175; }
+    if (i === 3) { W.sky.night = 1; cast.cat.on = true; Object.assign(c, { rot: 90, px: S.HOME.x + 160, py: S.FLOOR - 112 }); }
+    S.moveCam(SHOTS[i - 1], 0);
+    cur = i - 1;
+    lull(i);
   }
 
   /* ---------- frame loop ---------- */
@@ -293,13 +311,14 @@ App.seq = (() => {
   stage.addEventListener('pointercancel', up);
   stage.addEventListener('contextmenu', e => e.preventDefault());
   const bulb = document.getElementById('bulb');
+  const inPanel = e => !!(e.target && e.target.closest && e.target.closest('#panel'));
   addEventListener('keydown', e => {
-    if (document.activeElement === bulb || e.key === 'Tab' || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (document.activeElement === bulb || inPanel(e) || e.key === 'Tab' || e.metaKey || e.ctrlKey || e.altKey) return;
     if (phase === 'sleep') { e.preventDefault(); wake(); return; }
     if (phase === 'round' && R[cur].key) R[cur].key(e, true);
   });
   addEventListener('keyup', e => {
-    if (document.activeElement === bulb) return;
+    if (document.activeElement === bulb || inPanel(e)) return;
     if (phase === 'round' && R[cur].key) R[cur].key(e, false);
   });
   addEventListener('blur', () => { if (phase === 'round' && cur === 0) R[0].up(); });
@@ -360,5 +379,5 @@ App.seq = (() => {
   resetAll();
   requestAnimationFrame(frame);
   requestAnimationFrame(bulbFrame);
-  return { done, react, get phase() { return phase; }, get round() { return cur; } };
+  return { done, react, jumpTo, restart: resetAll, get phase() { return phase; }, get round() { return cur; } };
 })();

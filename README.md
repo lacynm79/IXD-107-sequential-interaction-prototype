@@ -11,14 +11,16 @@ One continuous, linear sequence built from the four interaction studies below. S
 | --- | --- | --- |
 | Opening | Tap anywhere (or press any key) to disturb the sleeper. The clock wakes up. | — |
 | 1. Dawn, 6:00 | Press and hold the snooze bar until it clicks flat. Letting go early springs it back. | Sticky Snooze Bar |
-| 2. Midday, 12:47 | Slap the clock four times. Each slap squashes it lower and muffles the ring. Clicking off the clock just smacks the air. | Slap the Alarm Quiet |
-| 3. Sunset, 6:18 | Shake the fist side to side at the clock until the rage fills and it throws the punch. A quick tap is a weak "thud". | Shake Your Fist |
+| 2. Midday, 12:47 | Slap the clock four times. Each slap squishes it down, it springs back up, and the ring gets quieter. Clicking off the clock just smacks the air. | Slap the Alarm Quiet |
+| 3. Sunset, 6:18 | Shake the fist side to side at the clock (three shakes by default) until the rage fills and it throws the punch. A quick tap is a weak "thud". | Shake Your Fist |
 | 4. Night, 11:27 | Grab the clock and fling it into the wall. Too slow and it drops back. | Throw the Clock |
 | Ending | The ring dies out, gives one last burst, the hand goes up, the sleeper sighs and rolls over. | — |
 
 Each step only unlocks after the previous one succeeds. Between steps, a snooze lull shows the time skipping forward and the sky changing before the clock jolts back, louder and shakier. The rooster, the neighbor and the cat in the window react along the way.
 
 **Reset:** pull the chain on the light bulb in the top-left corner.
+
+**Control panel:** a collapsible panel on the left tunes durations, distances and motion curves (Linear, Ease In, Ease Out, Ease In-Out, Spring/Bounce) for each component, with units and ranges labeled. Changes apply to the next move. *Preview from* replays any step. *Restore defaults* returns to the saved values in `js/config.js`. *Copy settings* copies every current value along with an instruction to save them as the new defaults.
 
 **Keyboard:** any key to start, hold Space for the snooze, Space/Enter to slap, alternate ← → to shake the fist, Space/Enter to throw.
 
@@ -32,6 +34,8 @@ It's best viewed on a landscape screen. On an upright phone the whole room still
 | --- | --- |
 | `index.html` | The page: one SVG bedroom with a camera group, plus the reset bulb |
 | `css/style.css` | Layout and type |
+| `js/config.js` | Saved defaults, the panel's control list, and the easing curves |
+| `js/panel.js` | The floating control panel |
 | `js/audio.js` | Synthesized ring (from Slap the Alarm Quiet), escalation levels, sound effects |
 | `js/scene.js` | Shared state and drawing: clock, hand and arm, blanket, window cast, camera, floating text |
 | `js/rounds.js` | The four steps, each adapted from its study's code |

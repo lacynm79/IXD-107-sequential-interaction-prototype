@@ -29,7 +29,7 @@ App.audio = (() => {
   }
 
   function build() {
-    master = C.createGain(); master.gain.value = .9;
+    master = C.createGain(); master.gain.value = .9 * App.cfg.volume / 90;
     const comp = C.createDynamicsCompressor(); comp.threshold.value = -10; comp.ratio.value = 4;
     master.connect(comp).connect(C.destination);
 
@@ -210,6 +210,8 @@ App.audio = (() => {
     pullClick() { tone('square', 1500, 900, .025, .18); tone('square', 600, 300, .03, .12, .03); },
     fireflyBlip() { tone('sine', 1400, 2400, .12, .06); tone('sine', 2400, 1800, .18, .04, .12); },
   };
+
+  App.config.onChange((k, v) => { if (k === 'volume' && master) master.gain.setTargetAtTime(.9 * v / 90, C.currentTime, .05); });
 
   return Object.assign({ unlock, ring, die, burst, get ready() { return !!C; } }, S);
 })();
