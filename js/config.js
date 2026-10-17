@@ -187,8 +187,22 @@ window.App = window.App || {};
     onChange(fn) { listeners.push(fn); },
   };
 
-  // colors reach the drawing through CSS custom properties (see "component colors" in css/style.css)
-  const applyColor = (k, v) => { if (k.startsWith('col')) document.documentElement.style.setProperty('--' + k, v); };
+  // Colors are written straight onto the parts they belong to (inline styles beat the drawing's own
+  // fill attributes in every browser and don't depend on a cached stylesheet). The CSS custom
+  // properties are set too, so parts drawn later (cracks, floating words) pick up the outline color.
+  const ink = () => document.querySelectorAll('#stage [stroke="#222"], #stage [stroke="#222222"]');
+  const inkText = () => document.querySelectorAll('#stage text[fill="#222"], #stage text[fill="#1c1c1c"]');
+  function applyColor(k, v) {
+    if (!k.startsWith('col')) return;
+    document.documentElement.style.setProperty('--' + k, v);
+    if (k === 'colPage') { document.body.style.background = v; return; }
+    if (k === 'colCat') return;                         // the cat is redrawn from App.cfg (js/scene.js)
+    if (k === 'colInk') { ink().forEach(n => { n.style.stroke = v; }); inkText().forEach(n => { n.style.fill = v; }); return; }
+    if (k === 'colDigits') { const d = document.getElementById('display'); if (d) d.style.fill = v; return; }
+    const cls = 'col-' + k[3].toLowerCase() + k.slice(4);
+    const prop = k === 'colFloorLine' ? 'stroke' : k === 'colCatRim' ? 'floodColor' : 'fill';
+    document.querySelectorAll('.' + cls).forEach(n => { n.style[prop] = v; });
+  }
   Object.keys(DEFAULTS).forEach(k => applyColor(k, App.cfg[k]));
   App.config.onChange(applyColor);
 })();
