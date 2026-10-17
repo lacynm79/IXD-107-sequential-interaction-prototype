@@ -170,18 +170,25 @@ App.scene = (() => {
     el.cat.innerHTML = s;
   }
   function drawCast() {
-    const { rooster: r, neighbor: n, cat } = W.cast;
-    el.rooster.setAttribute('transform', `translate(${(77 + r.x).toFixed(1)} ${(269 + r.y).toFixed(1)}) rotate(${r.rot.toFixed(2)})`);
-    el.neighbor.setAttribute('transform', `translate(${(214 + n.x).toFixed(1)} ${(272 + n.y).toFixed(1)}) rotate(${n.rot.toFixed(2)}) scale(${n.sx.toFixed(3)} ${n.sy.toFixed(3)})`);
-    el.cat.style.display = cat.on ? '' : 'none';
+    const { rooster: r, neighbor: n, cat } = W.cast, cfg = App.cfg;
+    // figures can be switched off or resized from the Window panel
+    el.rooster.style.display = cfg.winRooster ? '' : 'none';
+    el.neighbor.style.display = cfg.winNeighbor ? '' : 'none';
+    const rk = cfg.winRoosterSize, nk = cfg.winNeighborSize, ck = cfg.winCatSize;
+    el.rooster.setAttribute('transform', `translate(${(77 + r.x).toFixed(1)} ${(269 + r.y).toFixed(1)}) rotate(${r.rot.toFixed(2)}) scale(${rk})`);
+    el.neighbor.setAttribute('transform', `translate(${(214 + n.x).toFixed(1)} ${(272 + n.y).toFixed(1)}) rotate(${n.rot.toFixed(2)}) scale(${(n.sx * nk).toFixed(3)} ${(n.sy * nk).toFixed(3)})`);
+    el.cat.style.display = cat.on && cfg.winCat ? '' : 'none';
     if (cat.on) {
-      el.cat.setAttribute('transform', `translate(${(244 + cat.x).toFixed(1)} ${(262 + cat.y).toFixed(1)}) scale(1.25)`);
+      el.cat.setAttribute('transform', `translate(${(244 + cat.x).toFixed(1)} ${(262 + cat.y).toFixed(1)}) scale(${(1.25 * ck).toFixed(3)})`);
       catSVG(Math.round(clamp(cat.puff, 0, 1) * 20) / 20, cat.hiss);
     }
-    el.skyDawn.setAttribute('opacity', W.sky.dawn.toFixed(3));
-    el.skyMidday.setAttribute('opacity', W.sky.midday.toFixed(3));
-    el.skySunset.setAttribute('opacity', W.sky.sunset.toFixed(3));
-    el.skyNight.setAttribute('opacity', W.sky.night.toFixed(3));
+    // sky: the story's crossfade, unless the Window panel locks or previews one time of day
+    const pin = (App.winPreview && App.winPreview()) || (cfg.winShow !== 'story' ? cfg.winShow : null);
+    const op = pin ? { dawn: 1, midday: +(pin === 'day'), sunset: +(pin === 'sunset'), night: +(pin === 'night') } : W.sky;
+    el.skyDawn.setAttribute('opacity', op.dawn.toFixed(3));
+    el.skyMidday.setAttribute('opacity', op.midday.toFixed(3));
+    el.skySunset.setAttribute('opacity', op.sunset.toFixed(3));
+    el.skyNight.setAttribute('opacity', op.night.toFixed(3));
   }
 
   /* ---------- camera ---------- */

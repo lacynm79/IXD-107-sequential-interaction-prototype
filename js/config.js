@@ -152,6 +152,71 @@ window.App = window.App || {};
     ]],
   ];
 
+  // Window panel: what the window shows. One set of sky settings per time of day.
+  const TODS = [['Dawn', 'dawn'], ['Day', 'day'], ['Sunset', 'sunset'], ['Night', 'night']];
+  const SKY_ROWS = T => [
+    [`win${T}Art`, 'Original study artwork', 'check'],
+    [`win${T}Top`, 'Sky top', 'color'],
+    [`win${T}Bottom`, 'Sky bottom', 'color'],
+    [`win${T}Sun`, 'Sun', 'check'],
+    [`win${T}SunSize`, 'Sun size', 'range', 6, 70, 1, 'px'],
+    [`win${T}SunX`, 'Sun across', 'range', 0, 100, 1, '%'],
+    [`win${T}SunY`, 'Sun height', 'range', 0, 100, 1, '%', '0 = top of the pane'],
+    [`win${T}SunColor`, 'Sun', 'color'],
+    [`win${T}Moon`, 'Moon', 'check'],
+    [`win${T}MoonSize`, 'Moon size', 'range', 6, 60, 1, 'px'],
+    [`win${T}MoonX`, 'Moon across', 'range', 0, 100, 1, '%'],
+    [`win${T}MoonY`, 'Moon height', 'range', 0, 100, 1, '%', '0 = top of the pane'],
+    [`win${T}MoonPhase`, 'Moon phase', 'select', [['full', 'Full'], ['half', 'Half'], ['crescent', 'Crescent']]],
+    [`win${T}MoonColor`, 'Moon', 'color'],
+    [`win${T}Stars`, 'Stars', 'range', 0, 120, 1, 'stars'],
+    [`win${T}StarSize`, 'Star size', 'range', .3, 3, .05, '×'],
+    [`win${T}StarColor`, 'Stars', 'color'],
+    [`win${T}Comet`, 'Comet (flies across)', 'check'],
+    [`win${T}CometSize`, 'Comet size', 'range', .3, 3, .05, '×'],
+    [`win${T}CometColor`, 'Comet', 'color'],
+    [`win${T}Planets`, 'Planets', 'range', 0, 3, 1, 'planets'],
+    [`win${T}PlanetSize`, 'Planet size', 'range', .3, 3, .05, '×'],
+    [`win${T}PlanetColor`, 'Planets', 'color'],
+    [`win${T}Clouds`, 'Clouds', 'range', 0, 4, 1, 'clouds'],
+    [`win${T}CloudSize`, 'Cloud size', 'range', .3, 3, .05, '×'],
+    [`win${T}CloudColor`, 'Clouds', 'color'],
+  ];
+  const WINDOW_SCHEMA = [
+    ['Window', [
+      ['winShow', 'Window shows', 'select', [['story', 'Follow the story'], ['dawn', 'Always dawn'], ['day', 'Always day'], ['sunset', 'Always sunset'], ['night', 'Always night']]],
+      ['winRooster', 'Rooster', 'check'],
+      ['winRoosterSize', 'Rooster size', 'range', .3, 2, .05, '×'],
+      ['winNeighbor', 'Neighbor', 'check'],
+      ['winNeighborSize', 'Neighbor size', 'range', .3, 2, .05, '×'],
+      ['winCat', 'Cat', 'check'],
+      ['winCatSize', 'Cat size', 'range', .3, 2, .05, '×'],
+    ]],
+    ...TODS.map(([T]) => [T, SKY_ROWS(T)]),
+  ];
+  const SKY_DEFAULTS = {
+    Dawn:   { top: '#4a4a4a', bottom: '#bdbdbd', sun: [20, 75, 88], moon: [14, 22, 22, 'crescent'] },
+    Day:    { top: '#d9d9d9', bottom: '#f2f2f2', sun: [18, 75, 20], moon: [12, 20, 18, 'half'] },
+    Sunset: { top: '#2e2e2e', bottom: '#a6a6a6', sun: [26, 70, 96], moon: [14, 22, 22, 'crescent'] },
+    Night:  { top: '#1c1c1c', bottom: '#2e2e2e', sun: [18, 75, 20], moon: [18, 70, 30, 'full'] },
+  };
+  const windowDefaults = () => {
+    const d = { winShow: 'story', winRooster: true, winRoosterSize: 1, winNeighbor: true, winNeighborSize: 1, winCat: true, winCatSize: 1 };
+    TODS.forEach(([T]) => {
+      const k = SKY_DEFAULTS[T];
+      Object.assign(d, {
+        [`win${T}Art`]: true, [`win${T}Top`]: k.top, [`win${T}Bottom`]: k.bottom,
+        [`win${T}Sun`]: false, [`win${T}SunSize`]: k.sun[0], [`win${T}SunX`]: k.sun[1], [`win${T}SunY`]: k.sun[2], [`win${T}SunColor`]: '#f4f4f4',
+        [`win${T}Moon`]: false, [`win${T}MoonSize`]: k.moon[0], [`win${T}MoonX`]: k.moon[1], [`win${T}MoonY`]: k.moon[2], [`win${T}MoonPhase`]: k.moon[3], [`win${T}MoonColor`]: '#e4e4e4',
+        [`win${T}Stars`]: 0, [`win${T}StarSize`]: 1, [`win${T}StarColor`]: '#e6e6e6',
+        [`win${T}Comet`]: false, [`win${T}CometSize`]: 1, [`win${T}CometColor`]: '#ffffff',
+        [`win${T}Planets`]: 0, [`win${T}PlanetSize`]: 1, [`win${T}PlanetColor`]: '#b5b5b5',
+        [`win${T}Clouds`]: 0, [`win${T}CloudSize`]: 1, [`win${T}CloudColor`]: '#ffffff',
+      });
+    });
+    return d;
+  };
+
   const DEFAULTS = {
     volume: 90, shake: 1, lullMs: 3600,
     camMs: 2400, camEase: 'easeInOut',
@@ -179,6 +244,8 @@ window.App = window.App || {};
     colCat: '#111111', colCatRim: '#d9d9d9',
     colBulbGlass: '#f4f4f4', colBulbGlow: '#ffffff', colSocket: '#7a7a7a', colBulbLine: '#222222', colChain: '#555555',
     colResetTag: '#ffffff', colFirefly: '#2b2b2b', colFireflyTail: '#e8e8e8', colWings: '#555555', colBlackout: '#0b0b0b',
+    // window panel
+    ...windowDefaults(),
   };
 
   // The motion panel is hidden. Set SHOW_PANEL to true to bring the same panel back
@@ -187,11 +254,13 @@ window.App = window.App || {};
   // The trigger and color panels are shown. Set these to false to hide them again.
   const SHOW_TRIGGER_PANEL = true;
   const SHOW_COLOR_PANEL = true;
+  const SHOW_WINDOW_PANEL = true;
 
   const listeners = [];
   App.cfg = { ...DEFAULTS };
   App.config = {
-    SCHEMA, TRIGGER_SCHEMA, COLOR_SCHEMA, DEFAULTS, EASE, EASE_LABELS,
+    SCHEMA, TRIGGER_SCHEMA, COLOR_SCHEMA, WINDOW_SCHEMA, TODS, DEFAULTS, EASE, EASE_LABELS,
+    showWindowPanel: SHOW_WINDOW_PANEL,
     showColorPanel: SHOW_COLOR_PANEL,
     showPanel: SHOW_PANEL || /[?&]panel\b/.test(location.search),
     showTriggerPanel: SHOW_TRIGGER_PANEL,

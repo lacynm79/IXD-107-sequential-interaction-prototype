@@ -6,7 +6,7 @@
   <title>Five More Minutes</title>
   <meta name="description" content="A sequential interaction prototype: snooze it, slap it, punch it, throw it.">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=20261018b">
+  <link rel="stylesheet" href="css/style.css?v=20261018d">
 </head>
 <body>
 
@@ -49,6 +49,10 @@
         <rect class="col-snooze" x="6" y="5" width="44" height="13" rx="3" fill="#e2e2e2" stroke="#222222" stroke-width="3" stroke-linejoin="round"/>
         <line x1="12" y1="9.5" x2="44" y2="9.5" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
       </g>
+      <linearGradient id="skyGradDawn" x1="0" y1="0" x2="0" y2="1"><stop class="top" offset="0" stop-color="#888"/><stop class="bottom" offset="1" stop-color="#ccc"/></linearGradient>
+      <linearGradient id="skyGradDay" x1="0" y1="0" x2="0" y2="1"><stop class="top" offset="0" stop-color="#888"/><stop class="bottom" offset="1" stop-color="#ccc"/></linearGradient>
+      <linearGradient id="skyGradSunset" x1="0" y1="0" x2="0" y2="1"><stop class="top" offset="0" stop-color="#888"/><stop class="bottom" offset="1" stop-color="#ccc"/></linearGradient>
+      <linearGradient id="skyGradNight" x1="0" y1="0" x2="0" y2="1"><stop class="top" offset="0" stop-color="#888"/><stop class="bottom" offset="1" stop-color="#ccc"/></linearGradient>
       <clipPath id="paneClip"><rect x="0" y="0" width="311" height="269"/></clipPath>
     </defs>
 
@@ -62,10 +66,27 @@
       <!-- window: four skies stacked, the cast lives inside the pane -->
       <g id="window" transform="translate(900 150)">
         <g transform="translate(24 5)" clip-path="url(#paneClip)">
-          <image id="skyDawn" href="assets/img/sky-dawn.png" width="311" height="269" preserveAspectRatio="xMidYMid slice"/>
-          <image id="skyMidday" href="assets/img/sky-midday.png" width="311" height="269" preserveAspectRatio="xMidYMid slice" opacity="0"/>
-          <image id="skySunset" href="assets/img/sky-sunset.svg" width="311" height="269" preserveAspectRatio="xMidYMid slice" opacity="0"/>
-          <image id="skyNight" href="assets/img/sky-night.svg" width="311" height="269" preserveAspectRatio="xMidYMid slice" opacity="0"/>
+          <!-- one layer per time of day: gradient, the study's artwork, then drawn extras (js/sky.js) -->
+          <g id="skyDawn" data-tod="Dawn">
+            <rect width="311" height="269" fill="url(#skyGradDawn)"/>
+            <image class="art" href="assets/img/sky-dawn.png" width="311" height="269" preserveAspectRatio="xMidYMid slice"/>
+            <g class="cel"></g>
+          </g>
+          <g id="skyMidday" data-tod="Day" opacity="0">
+            <rect width="311" height="269" fill="url(#skyGradDay)"/>
+            <image class="art" href="assets/img/sky-midday.png" width="311" height="269" preserveAspectRatio="xMidYMid slice"/>
+            <g class="cel"></g>
+          </g>
+          <g id="skySunset" data-tod="Sunset" opacity="0">
+            <rect width="311" height="269" fill="url(#skyGradSunset)"/>
+            <image class="art" href="assets/img/sky-sunset.svg" width="311" height="269" preserveAspectRatio="xMidYMid slice"/>
+            <g class="cel"></g>
+          </g>
+          <g id="skyNight" data-tod="Night" opacity="0">
+            <rect width="311" height="269" fill="url(#skyGradNight)"/>
+            <image class="art" href="assets/img/sky-night.svg" width="311" height="269" preserveAspectRatio="xMidYMid slice"/>
+            <g class="cel"></g>
+          </g>
           <g id="rooster"><image href="assets/img/rooster.png" x="-55" y="-151" width="111" height="151"/></g>
           <g id="neighbor"><image href="assets/img/neighbor.png" x="-79" y="-150" width="157" height="150"/></g>
           <g id="cat" filter="url(#catRim)"></g>
@@ -196,11 +217,12 @@
   </svg>
 </button>
 
-<script src="js/config.js?v=20261018b"></script>
-<script src="js/audio.js?v=20261018b"></script>
-<script src="js/scene.js?v=20261018b"></script>
-<script src="js/rounds.js?v=20261018b"></script>
-<script src="js/main.js?v=20261018b"></script>
-<script src="js/panel.js?v=20261018b"></script>
+<script src="js/config.js?v=20261018d"></script>
+<script src="js/audio.js?v=20261018d"></script>
+<script src="js/scene.js?v=20261018d"></script>
+<script src="js/rounds.js?v=20261018d"></script>
+<script src="js/main.js?v=20261018d"></script>
+<script src="js/sky.js?v=20261018d"></script>
+<script src="js/panel.js?v=20261018d"></script>
 </body>
 </html>

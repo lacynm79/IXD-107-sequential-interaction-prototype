@@ -28,6 +28,61 @@
     return 'M' + pts.join(' L');
   }
 
+  // one control row for a schema entry: [key, label, kind, ...]
+  //   range: min, max, step, unit, hint · color · ease · check · select: [[value, label], ...]
+  function controlRow(prefix, [key, text, kind, min, max, step, unit, hint], inputs) {
+    const iid = prefix + '-' + key;
+    if (kind === 'range') {
+      const out = h('output', { for: iid });
+      const input = h('input', { type: 'range', id: iid, min, max, step, value: cfg[key] });
+      const show = v => { out.textContent = `${fmtVal(v, step)} ${unit}`; };
+      input.addEventListener('input', () => { const v = Number(input.value); C.set(key, v); show(v); });
+      show(cfg[key]);
+      inputs[key] = { set: v => { input.value = v; show(v); } };
+      return h('div', { class: 'row' },
+        h('label', { for: iid }, h('span', { text }), out),
+        input,
+        h('small', { text: `${fmtVal(min, step)}–${fmtVal(max, step)} ${unit}${hint ? ' · ' + hint : ''}` }));
+    }
+    if (kind === 'check') {
+      const input = h('input', { type: 'checkbox', id: iid });
+      input.checked = !!cfg[key];
+      input.addEventListener('change', () => C.set(key, input.checked));
+      inputs[key] = { set: v => { input.checked = !!v; } };
+      return h('label', { class: 'check', for: iid }, input, h('span', { text }));
+    }
+    if (kind === 'select') {
+      const sel = h('select', { id: iid });
+      min.forEach(([v, t]) => sel.append(h('option', { value: v, text: t })));
+      sel.value = cfg[key];
+      sel.addEventListener('change', () => C.set(key, sel.value));
+      inputs[key] = { set: v => { sel.value = v; } };
+      return h('div', { class: 'row' }, h('label', { for: iid, text }), sel);
+    }
+    if (kind === 'color') {
+      const input = h('input', { type: 'color', id: iid, value: cfg[key] });
+      const out = h('output', { for: iid });
+      const show = v => { out.textContent = v; };
+      input.addEventListener('input', () => { C.set(key, input.value); show(input.value); });
+      show(cfg[key]);
+      inputs[key] = { set: v => { input.value = v; show(v); } };
+      return h('div', { class: 'colorRow' }, h('label', { for: iid, text }), out, input);
+    }
+    const sel = h('select', { id: iid });
+    Object.entries(C.EASE_LABELS).forEach(([v, t]) => sel.append(h('option', { value: v, text: t })));
+    sel.value = cfg[key];
+    const svg = document.createElementNS(SVGNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 60 36'); svg.setAttribute('class', 'curve'); svg.setAttribute('aria-hidden', 'true');
+    const base = document.createElementNS(SVGNS, 'path'); base.setAttribute('d', 'M4 30 H56 M4 8 H56'); base.setAttribute('class', 'guide');
+    const path = document.createElementNS(SVGNS, 'path');
+    svg.append(base, path);
+    const show = v => path.setAttribute('d', curvePath(v));
+    sel.addEventListener('change', () => { C.set(key, sel.value); show(sel.value); });
+    show(cfg[key]);
+    inputs[key] = { set: v => { sel.value = v; show(v); } };
+    return h('div', { class: 'row ease' }, h('label', { for: iid, text }), h('div', { class: 'easeRow' }, sel, svg));
+  }
+
   function buildPanel({ id, title, label, schema, copyTitle, note, storageKey, extra, custom }) {
     const panel = h('aside', { id, class: 'tpanel', 'aria-label': label });
     const bodyId = id + 'Body';
@@ -55,47 +110,11 @@
     // controls
     const inputs = {}, keys = [];
     // a panel can draw its own controls (the color picker) instead of one row per setting
-    if (custom) { schema.forEach(([, rows]) => rows.forEach(([key]) => keys.push(key))); custom(body, inputs); }
+    let refresh = null;
+    if (custom) { schema.forEach(([, rows]) => rows.forEach(([key]) => keys.push(key))); refresh = custom(body, inputs, panel); }
     else schema.forEach(([group, rows], gi) => {
       const det = h('details', gi < 2 ? { open: '' } : {}, h('summary', { text: group }));
-      rows.forEach(([key, text, kind, min, max, step, unit, hint]) => {
-        keys.push(key);
-        const iid = id + '-' + key;
-        if (kind === 'range') {
-          const out = h('output', { for: iid });
-          const input = h('input', { type: 'range', id: iid, min, max, step, value: cfg[key] });
-          const show = v => { out.textContent = `${fmtVal(v, step)} ${unit}`; };
-          input.addEventListener('input', () => { const v = Number(input.value); C.set(key, v); show(v); });
-          show(cfg[key]);
-          inputs[key] = { set: v => { input.value = v; show(v); } };
-          det.append(h('div', { class: 'row' },
-            h('label', { for: iid }, h('span', { text }), out),
-            input,
-            h('small', { text: `${fmtVal(min, step)}–${fmtVal(max, step)} ${unit}${hint ? ' · ' + hint : ''}` })));
-        } else if (kind === 'color') {
-          const input = h('input', { type: 'color', id: iid, value: cfg[key] });
-          const out = h('output', { for: iid });
-          const show = v => { out.textContent = v; };
-          input.addEventListener('input', () => { C.set(key, input.value); show(input.value); });
-          show(cfg[key]);
-          inputs[key] = { set: v => { input.value = v; show(v); } };
-          det.append(h('div', { class: 'colorRow' }, h('label', { for: iid, text }), out, input));
-        } else {
-          const sel = h('select', { id: iid });
-          Object.entries(C.EASE_LABELS).forEach(([v, t]) => sel.append(h('option', { value: v, text: t })));
-          sel.value = cfg[key];
-          const svg = document.createElementNS(SVGNS, 'svg');
-          svg.setAttribute('viewBox', '0 0 60 36'); svg.setAttribute('class', 'curve'); svg.setAttribute('aria-hidden', 'true');
-          const base = document.createElementNS(SVGNS, 'path'); base.setAttribute('d', 'M4 30 H56 M4 8 H56'); base.setAttribute('class', 'guide');
-          const path = document.createElementNS(SVGNS, 'path');
-          svg.append(base, path);
-          const show = v => path.setAttribute('d', curvePath(v));
-          sel.addEventListener('change', () => { C.set(key, sel.value); show(sel.value); });
-          show(cfg[key]);
-          inputs[key] = { set: v => { sel.value = v; show(v); } };
-          det.append(h('div', { class: 'row ease' }, h('label', { for: iid, text }), h('div', { class: 'easeRow' }, sel, svg)));
-        }
-      });
+      rows.forEach(row => { keys.push(row[0]); det.append(controlRow(id, row, inputs)); });
       body.append(det);
     });
     body.append(h('p', { class: 'note', text: note }));
@@ -114,7 +133,8 @@
 
     restoreBtn.addEventListener('click', () => {
       C.restore(keys);
-      keys.forEach(k => inputs[k].set(cfg[k]));
+      keys.forEach(k => inputs[k] && inputs[k].set(cfg[k]));
+      if (refresh) refresh();
       flash('Defaults restored.');
     });
 
@@ -122,10 +142,12 @@
       const lines = [copyTitle, ''];
       schema.forEach(([group, rows]) => {
         lines.push(group);
-        rows.forEach(([key, text, kind, , , step, unit]) => {
+        rows.forEach(([key, text, kind, opts, , step, unit]) => {
           const v = cfg[key];
           lines.push(kind === 'range' ? `- ${text} (${key}): ${fmtVal(v, step)} ${unit}`
             : kind === 'color' ? `- ${text} (${key}): ${v}`
+            : kind === 'check' ? `- ${text} (${key}): ${v ? 'On' : 'Off'}`
+            : kind === 'select' ? `- ${text} (${key}): ${(opts.find(o => o[0] === v) || [, v])[1]} (${v})`
             : `- ${text} (${key}): ${C.EASE_LABELS[v]} (${v})`);
         });
         lines.push('');
@@ -229,10 +251,10 @@
   const SWATCHES = ['#111111', '#222222', '#444444', '#6f6f6f', '#9a9a9a', '#c4c4c4', '#e2e2e2', '#ffffff',
     '#b03030', '#e0663a', '#e8b23a', '#f2e3b3', '#5f9e4a', '#2f7f7a', '#3a6fb0', '#7a4fb0', '#c45a8f', '#7a5230'];
 
-  function colorPicker(body, inputs) {
+  function spectrumPicker(body, groups, inputs, selectId) {
     const items = [];
-    const sel = h('select', { id: 'colorItem', 'aria-label': 'Item to color' });
-    C.COLOR_SCHEMA.forEach(([group, rows]) => {
+    const sel = h('select', { id: selectId, class: 'colorItem', 'aria-label': 'Item to color' });
+    groups.forEach(([group, rows]) => {
       const og = h('optgroup', { label: group });
       rows.forEach(([key, text]) => { og.append(h('option', { value: key, text })); items.push(key); });
       sel.append(og);
@@ -317,6 +339,57 @@
     items.forEach(k => { inputs[k] = { set: () => { if (k === key) load(k); } }; });
     load(key);
   }
+  const colorPicker = (body, inputs) => spectrumPicker(body, C.COLOR_SCHEMA, inputs, 'colorItem');
+
+  /* ---------- window panel: what the window shows, figures, and a tab per time of day ---------- */
+  function windowPanel(body, inputs, panel) {
+    const [general, ...skies] = C.WINDOW_SCHEMA;
+    general[1].forEach(row => body.append(controlRow('win', row, inputs)));
+    const tabs = h('div', { class: 'todTabs', role: 'tablist', 'aria-label': 'Time of day to edit' });
+    const preview = h('input', { type: 'checkbox', id: 'winPreview', checked: '' });
+    const area = h('div', { class: 'todArea' });
+    body.append(h('p', { class: 'jumpLabel', text: 'Edit the sky for' }), tabs,
+      h('label', { class: 'check', for: 'winPreview' }, preview, h('span', { text: 'Preview this time of day in the window while editing it' })), area);
+    const NAMES = { Dawn: 'dawn', Day: 'day', Sunset: 'sunset', Night: 'night' };
+    let cur = 'Night';
+    const btns = {};
+    skies.forEach(([T]) => {
+      const b = h('button', { type: 'button', role: 'tab', text: T });
+      b.addEventListener('click', () => show(T));
+      btns[T] = b; tabs.append(b);
+    });
+    // section headings inside a tab, by the setting they start at
+    const SECTIONS = { Art: 'Sky', Sun: 'Sun', Moon: 'Moon', Stars: 'Stars', Comet: 'Comet', Planets: 'Planets', Clouds: 'Clouds' };
+    function show(T) {
+      cur = T;
+      Object.entries(btns).forEach(([n, b]) => { b.setAttribute('aria-selected', String(n === T)); b.classList.toggle('on', n === T); });
+      area.textContent = '';
+      const rows = skies.find(([n]) => n === T)[1];
+      let det = null;
+      rows.filter(r => r[2] !== 'color').forEach(row => {
+        const part = row[0].slice(3 + T.length);
+        if (SECTIONS[part]) { det = h('details', { open: '' }, h('summary', { text: SECTIONS[part] })); area.append(det); }
+        det.append(controlRow('win', row, inputs));
+      });
+      const colors = rows.filter(r => r[2] === 'color').map(([k, text]) => [k, text]);
+      const cdet = h('details', { open: '' }, h('summary', { text: `${T} colors` }));
+      area.append(cdet);
+      spectrumPicker(cdet, [[`${T} colors`, colors]], inputs, 'winColorItem');
+    }
+    // the scene asks which time of day to preview: only while you're working in the sky editor
+    // (pointer over it, or a change in the last 2.5 s); otherwise the story's sky shows
+    let hovering = false, lastEdit = -1e9;
+    const touch = () => { lastEdit = performance.now(); };
+    [tabs, area].forEach(el => {
+      el.addEventListener('pointerenter', () => { hovering = true; touch(); });
+      el.addEventListener('pointerleave', () => { hovering = false; touch(); });
+      ['input', 'change', 'click', 'focusin', 'pointerdown'].forEach(ev => el.addEventListener(ev, touch));
+    });
+    App.winPreview = () => (preview.checked && !panel.classList.contains('closed') &&
+      (hovering || performance.now() - lastEdit < 2500) ? NAMES[cur] : null);
+    show(cur);
+    return () => show(cur);
+  }
 
   if (C.showColorPanel) {
     buildPanel({
@@ -324,6 +397,14 @@
       schema: C.COLOR_SCHEMA, copyTitle: 'Five More Minutes: color settings', storageKey: 'fmm-color-panel-open',
       custom: colorPicker,
       note: 'Pick an item, then drag in the color square and the rainbow strip. The stage updates as you go. The rooster, neighbor, window frame, skies and ring lines are drawings from the studies and keep their own colors.',
+    });
+  }
+  if (C.showWindowPanel) {
+    buildPanel({
+      id: 'windowPanel', title: 'Window', label: 'Window controls',
+      schema: C.WINDOW_SCHEMA, copyTitle: 'Five More Minutes: window settings', storageKey: 'fmm-window-panel-open',
+      custom: windowPanel,
+      note: 'Pick a time of day, then add or remove the sun, moon, stars, comet, planets and clouds, and set their sizes and colors. Turn off the original artwork for a clean gradient sky.',
     });
   }
   if (C.showPanel) {

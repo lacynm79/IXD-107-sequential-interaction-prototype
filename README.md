@@ -24,7 +24,9 @@ Each step only unlocks after the previous one succeeds. Between steps, a snooze 
 
 **Colors panel:** a collapsible panel below it. Choose an item from the menu (grouped by room, bed, sleeper, nightstand, alarm clock, window cast, reset light; ‹ › step through them), then pick its color from the full-spectrum square and rainbow hue strip, a quick swatch, a hex code, or the system picker. *Item default* resets just that item. Colors change on the stage as you pick them. The rooster, neighbor, window frame, skies and ring lines are bitmaps from the studies and keep their own colors.
 
-Both panels have *Restore defaults* (back to the saved values in `js/config.js`) and *Copy settings* (copies every name and value with an instruction to save them as the new defaults). Hide either panel with `SHOW_TRIGGER_PANEL` / `SHOW_COLOR_PANEL` in `js/config.js`.
+**Window panel:** sets what the window shows: follow the story or lock it to dawn, day, sunset or night; turn the rooster, neighbor and cat on or off and resize them. Tabs for Dawn, Day, Sunset and Night each control that sky: the original study artwork (on by default), the sky gradient colors, and an optional sun, moon (full, half or crescent), stars, a comet that streaks across, planets and clouds, each with size, position or count and color. While you edit a tab, the window previews that time of day.
+
+All three panels have *Restore defaults* (back to the saved values in `js/config.js`) and *Copy settings* (copies every name and value with an instruction to save them as the new defaults). Hide any panel with `SHOW_TRIGGER_PANEL` / `SHOW_COLOR_PANEL` / `SHOW_WINDOW_PANEL` in `js/config.js`.
 
 **Motion panel (hidden):** the panel is switched off. To bring it back, set `SHOW_PANEL = true` in `js/config.js`, or add `?panel` to the page address to show it for one visit. When shown, it is a collapsible panel on the left that tunes durations, distances and motion curves (Linear, Ease In, Ease Out, Ease In-Out, Spring/Bounce) for each component, with units and ranges labeled. Changes apply to the next move. *Preview from* replays any step. *Restore defaults* returns to the saved values in `js/config.js`. *Copy settings* copies every current value along with an instruction to save them as the new defaults.
 
@@ -41,6 +43,7 @@ It's best viewed on a landscape screen. On an upright phone the whole room still
 | `index.html` | The page: one SVG bedroom with a camera group, plus the reset bulb |
 | `css/style.css` | Layout and type |
 | `js/config.js` | Saved defaults, the control lists for the three panels, easing curves, and color variables |
+| `js/sky.js` | Draws each time of day's window sky from the Window panel settings |
 | `js/panel.js` | The floating control panels (triggers, colors, and the hidden motion panel) |
 | `js/audio.js` | Synthesized ring (from Slap the Alarm Quiet), escalation levels, sound effects |
 | `js/scene.js` | Shared state and drawing: clock, hand and arm, blanket, window cast, camera, floating text |
