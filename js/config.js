@@ -138,6 +138,18 @@ window.App = window.App || {};
       ['colCat', 'Cat', 'color'],
       ['colCatRim', 'Cat outline glow', 'color'],
     ]],
+    ['Reset light', [
+      ['colBulbGlass', 'Bulb glass', 'color'],
+      ['colBulbGlow', 'Bulb and firefly glow', 'color'],
+      ['colSocket', 'Socket', 'color'],
+      ['colBulbLine', 'Cord, outlines and reset arrow', 'color'],
+      ['colChain', 'Chain', 'color'],
+      ['colResetTag', 'Reset tag', 'color'],
+      ['colFirefly', 'Firefly body', 'color'],
+      ['colFireflyTail', 'Firefly tail (unlit)', 'color'],
+      ['colWings', 'Firefly wings', 'color'],
+      ['colBlackout', 'Lights-out darkness', 'color'],
+    ]],
   ];
 
   const DEFAULTS = {
@@ -165,6 +177,8 @@ window.App = window.App || {};
     colStandTop: '#9a9a9a', colStandBody: '#8a8a8a', colDrawer: '#9c9c9c', colKnob: '#d9d9d9',
     colClockBody: '#7a7a7a', colClockFeet: '#d9d9d9', colScreen: '#2b2b2b', colDigits: '#cfcfcf', colBell: '#e2e2e2', colSnooze: '#e2e2e2',
     colCat: '#111111', colCatRim: '#d9d9d9',
+    colBulbGlass: '#f4f4f4', colBulbGlow: '#ffffff', colSocket: '#7a7a7a', colBulbLine: '#222222', colChain: '#555555',
+    colResetTag: '#ffffff', colFirefly: '#2b2b2b', colFireflyTail: '#e8e8e8', colWings: '#555555', colBlackout: '#0b0b0b',
   };
 
   // The motion panel is hidden. Set SHOW_PANEL to true to bring the same panel back
@@ -196,11 +210,13 @@ window.App = window.App || {};
     if (!k.startsWith('col')) return;
     document.documentElement.style.setProperty('--' + k, v);
     if (k === 'colPage') { document.body.style.background = v; return; }
-    if (k === 'colCat') return;                         // the cat is redrawn from App.cfg (js/scene.js)
+    if (k === 'colCat' || k === 'colBulbGlass' || k === 'colFireflyTail') return;   // redrawn every frame from App.cfg
+    if (k === 'colBlackout') { const d = document.getElementById('dark'); if (d) d.style.background = v; return; }
+    if (k === 'colBulbLine') { document.querySelectorAll('#bulb [stroke="#222"]').forEach(n => { n.style.stroke = v; }); return; }
     if (k === 'colInk') { ink().forEach(n => { n.style.stroke = v; }); inkText().forEach(n => { n.style.fill = v; }); return; }
     if (k === 'colDigits') { const d = document.getElementById('display'); if (d) d.style.fill = v; return; }
     const cls = 'col-' + k[3].toLowerCase() + k.slice(4);
-    const prop = k === 'colFloorLine' ? 'stroke' : k === 'colCatRim' ? 'floodColor' : 'fill';
+    const prop = ['colFloorLine', 'colChain', 'colWings'].includes(k) ? 'stroke' : k === 'colCatRim' ? 'floodColor' : k === 'colBulbGlow' ? 'stopColor' : 'fill';
     document.querySelectorAll('.' + cls).forEach(n => { n.style[prop] = v; });
   }
   Object.keys(DEFAULTS).forEach(k => applyColor(k, App.cfg[k]));

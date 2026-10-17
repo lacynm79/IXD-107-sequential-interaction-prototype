@@ -6,7 +6,7 @@
   <title>Five More Minutes</title>
   <meta name="description" content="A sequential interaction prototype: snooze it, slap it, punch it, throw it.">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=20261018a">
+  <link rel="stylesheet" href="css/style.css?v=20261018b">
 </head>
 <body>
 
@@ -170,18 +170,18 @@
 <button id="bulb" type="button" aria-label="Reset: pull the light chain">
   <svg viewBox="0 0 120 230" aria-hidden="true">
     <defs>
-      <radialGradient id="glow"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset=".4" stop-color="#f4f4f4" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+      <radialGradient id="glow"><stop class="col-bulbGlow" offset="0" stop-color="#fff" stop-opacity=".95"/><stop class="col-bulbGlow" offset=".4" stop-color="#f4f4f4" stop-opacity=".55"/><stop class="col-bulbGlow" offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
     </defs>
     <g id="bulbSwing">
       <line x1="60" y1="0" x2="60" y2="58" stroke="#222" stroke-width="3"/>
-      <rect x="49" y="56" width="22" height="20" rx="3" fill="#7a7a7a" stroke="#222" stroke-width="3"/>
+      <rect class="col-socket" x="49" y="56" width="22" height="20" rx="3" fill="#7a7a7a" stroke="#222" stroke-width="3"/>
       <circle id="bulbHalo" cx="60" cy="96" r="38" fill="url(#glow)" opacity=".35"/>
       <path id="bulbGlass" d="M50 76 C30 84 34 116 52 120 L68 120 C86 116 90 84 70 76 Z" fill="#f4f4f4" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
       <path d="M55 120 h10 M55 127 h10" stroke="#222" stroke-width="3" stroke-linecap="round"/>
       <g id="chain">
-        <path id="chainLine" d="M72 112 L72 176" stroke="#555" stroke-width="2.5" stroke-dasharray="3 3"/>
+        <path id="chainLine" class="col-chain" d="M72 112 L72 176" stroke="#555" stroke-width="2.5" stroke-dasharray="3 3"/>
         <g id="chainBead">
-          <circle cx="72" cy="187" r="11" fill="#fff" stroke="#222" stroke-width="2.5"/>
+          <circle class="col-resetTag" cx="72" cy="187" r="11" fill="#fff" stroke="#222" stroke-width="2.5"/>
           <path d="M78 187 a6 6 0 1 1 -1.76 -4.24" fill="none" stroke="#222" stroke-width="2.2" stroke-linecap="round"/>
           <path d="M76.7 178.2 l-0.46 4.56 l-4.5 -0.8" fill="none" stroke="#222" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </g>
@@ -189,18 +189,18 @@
     </g>
     <g id="firefly">
       <circle id="flyGlow" r="16" fill="url(#glow)" opacity=".5"/>
-      <ellipse rx="5" ry="3.4" fill="#2b2b2b"/>
+      <ellipse class="col-firefly" rx="5" ry="3.4" fill="#2b2b2b"/>
       <ellipse id="flyTail" cx="-5" rx="3.4" ry="3" fill="#f2f2f2" stroke="#222" stroke-width="1.5"/>
-      <path id="flyWings" d="M0 -2 q-3 -9 -9 -6 M1 -2 q4 -9 9 -5" fill="none" stroke="#555" stroke-width="1.5" stroke-linecap="round"/>
+      <path id="flyWings" d="M0 -2 q-3 -9 -9 -6 M1 -2 q4 -9 9 -5" fill="none" class="col-wings" stroke="#555" stroke-width="1.5" stroke-linecap="round"/>
     </g>
   </svg>
 </button>
 
-<script src="js/config.js?v=20261018a"></script>
-<script src="js/audio.js?v=20261018a"></script>
-<script src="js/scene.js?v=20261018a"></script>
-<script src="js/rounds.js?v=20261018a"></script>
-<script src="js/main.js?v=20261018a"></script>
-<script src="js/panel.js?v=20261018a"></script>
+<script src="js/config.js?v=20261018b"></script>
+<script src="js/audio.js?v=20261018b"></script>
+<script src="js/scene.js?v=20261018b"></script>
+<script src="js/rounds.js?v=20261018b"></script>
+<script src="js/main.js?v=20261018b"></script>
+<script src="js/panel.js?v=20261018b"></script>
 </body>
 </html>

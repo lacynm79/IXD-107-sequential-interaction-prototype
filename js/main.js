@@ -353,7 +353,7 @@ App.seq = (() => {
     B.chain.setAttribute('transform', `translate(0 ${yank.toFixed(1)})`);
     const lit = !(pulling && k > 60 && k < 1050);
     B.halo.setAttribute('opacity', lit ? .35 : 0);
-    B.glass.setAttribute('fill', lit ? '#f4f4f4' : '#5a5a5a');
+    B.glass.setAttribute('fill', lit ? App.cfg.colBulbGlass : '#5a5a5a');
     // firefly loops the bulb; flashes in the dark, then sulks
     const a = now * .0021;
     const x = 60 + 36 * Math.cos(a), y = 96 + 13 * Math.sin(a) + 4 * Math.sin(now * .006);
@@ -364,7 +364,7 @@ App.seq = (() => {
     if (pulling && k > 100 && k < 900) { const f = Math.abs(Math.sin((k - 100) / 800 * Math.PI * 2)); g = .6 + .4 * f; r = 16 + 46 * f; }
     else if (pulling || (k < 3000)) g = .18;
     B.glow.setAttribute('opacity', g.toFixed(2)); B.glow.setAttribute('r', r.toFixed(1));
-    B.tail.setAttribute('fill', g > .55 ? '#ffffff' : '#e8e8e8');
+    B.tail.setAttribute('fill', g > .55 ? App.cfg.colBulbGlow : App.cfg.colFireflyTail);
     requestAnimationFrame(bulbFrame);
   }
 
