@@ -80,10 +80,15 @@ window.App = window.App || {};
     burstDelayMs: 5200, rollMs: 1300, rollEase: 'easeInOut',
   };
 
+  // The control panel is hidden. Set SHOW_PANEL to true to bring the same panel back
+  // (or add ?panel to the page URL to show it for one visit).
+  const SHOW_PANEL = false;
+
   const listeners = [];
   App.cfg = { ...DEFAULTS };
   App.config = {
     SCHEMA, DEFAULTS, EASE, EASE_LABELS,
+    showPanel: SHOW_PANEL || /[?&]panel\b/.test(location.search),
     ease: name => EASE[App.cfg[name]] || EASE.easeInOut,
     set(key, value) { App.cfg[key] = value; listeners.forEach(fn => fn(key, value)); },
     restore() { Object.keys(DEFAULTS).forEach(k => App.config.set(k, DEFAULTS[k])); },

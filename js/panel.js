@@ -2,6 +2,7 @@
    Builds itself from App.config.SCHEMA, writes through App.config.set, and can copy every
    current value (with an instruction to save them as defaults) to the clipboard. */
 (() => {
+  if (!App.config.showPanel) return;                  // hidden; see SHOW_PANEL in js/config.js
   const C = App.config, cfg = App.cfg;
   const INSTRUCTION = 'Apply these values as the prototype’s saved defaults. Retain the panel code for later adjustments. Commit and push the changes.';
   const h = (tag, attrs = {}, ...kids) => {

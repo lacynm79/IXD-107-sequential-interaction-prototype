@@ -20,7 +20,7 @@ Each step only unlocks after the previous one succeeds. Between steps, a snooze 
 
 **Reset:** pull the chain on the light bulb in the top-left corner.
 
-**Control panel:** a collapsible panel on the left tunes durations, distances and motion curves (Linear, Ease In, Ease Out, Ease In-Out, Spring/Bounce) for each component, with units and ranges labeled. Changes apply to the next move. *Preview from* replays any step. *Restore defaults* returns to the saved values in `js/config.js`. *Copy settings* copies every current value along with an instruction to save them as the new defaults.
+**Control panel (hidden):** the panel is switched off. To bring it back, set `SHOW_PANEL = true` in `js/config.js`, or add `?panel` to the page address to show it for one visit. When shown, it is a collapsible panel on the left that tunes durations, distances and motion curves (Linear, Ease In, Ease Out, Ease In-Out, Spring/Bounce) for each component, with units and ranges labeled. Changes apply to the next move. *Preview from* replays any step. *Restore defaults* returns to the saved values in `js/config.js`. *Copy settings* copies every current value along with an instruction to save them as the new defaults.
 
 **Keyboard:** any key to start, hold Space for the snooze, Space/Enter to slap, alternate ← → to shake the fist, Space/Enter to throw.
 
