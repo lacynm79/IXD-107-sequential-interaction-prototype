@@ -268,3 +268,20 @@ body { background: var(--colPage, #d6d6d6); }
   #window .comet { animation-duration: 18s; }
   #window .twk { animation: none; }
 }
+
+/* ---------- versions panel ---------- */
+.tpanel .verSave { display: flex; gap: 6px; margin: 4px 0 2px; }
+.tpanel .verName {
+  flex: 1; min-width: 0; min-height: 32px; box-sizing: border-box; padding: 4px 8px;
+  border: 1.5px solid var(--ink); border-radius: 8px; background: #fff; color: var(--ink); font: 13px ui-sans-serif, system-ui, sans-serif;
+}
+.tpanel .verSave .act { flex: none; }
+.tpanel .verList { list-style: none; margin: 4px 0 0; padding: 0; max-height: 220px; overflow-y: auto; }
+.tpanel .verList li { display: flex; align-items: center; gap: 6px; padding: 6px 2px; border-top: 1px solid #d6d6d6; }
+.tpanel .verList li.empty { color: #666; font-size: 12px; border: 0; }
+.tpanel .verInfo { flex: 1; min-width: 0; display: grid; }
+.tpanel .verInfo strong { font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tpanel .verInfo small { color: #666; font-size: 11px; }
+.tpanel .verList li.auto strong { font-weight: 500; color: #444; }
+.tpanel .verList .act.small { flex: none; }
+.tpanel button.step.del { width: 28px; height: 28px; font-size: 16px; }

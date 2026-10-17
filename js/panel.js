@@ -20,6 +20,12 @@
   const fmtVal = (v, step) => Number(v).toFixed(decimals(step));
   const dock = h('div', { id: 'dock' });
   document.body.append(dock);
+  // every built panel registers here so a restored version can refresh all controls
+  const registry = [];
+  const refreshAll = () => registry.forEach(({ keys, inputs, refresh }) => {
+    keys.forEach(k => inputs[k] && inputs[k].set(cfg[k]));
+    if (refresh) refresh();
+  });
 
   // tiny drawing of an easing curve
   function curvePath(name) {
@@ -131,7 +137,9 @@
     try { startOpen = localStorage.getItem(storageKey) !== '0'; } catch (_) { /* storage unavailable */ }
     setOpen(startOpen);
 
+    registry.push({ keys, inputs, get refresh() { return refresh; } });
     restoreBtn.addEventListener('click', () => {
+      if (App.versions) App.versions.beforeReset(`${title} defaults`);   // so this can be undone
       C.restore(keys);
       keys.forEach(k => inputs[k] && inputs[k].set(cfg[k]));
       if (refresh) refresh();
@@ -222,6 +230,59 @@
     }
     requestAnimationFrame(frame);
   }
+
+  /* ---------- versions: auto-save on/off, save by hand, restore past versions ---------- */
+  function versionsPanel() {
+    const V = App.versions;
+    const panel = h('aside', { id: 'versionsPanel', class: 'tpanel', 'aria-label': 'Saved versions' });
+    const toggle = h('button', { class: 'panelToggle', type: 'button', 'aria-expanded': 'true', 'aria-controls': 'versionsBody' },
+      h('span', { class: 'chev', 'aria-hidden': 'true', text: '‹' }), h('span', { text: 'Versions' }));
+    const body = h('div', { id: 'versionsBody', class: 'panelBody' });
+    panel.append(toggle, body);
+    const autoBox = h('input', { type: 'checkbox', id: 'autoSave' });
+    autoBox.checked = V.auto;
+    autoBox.addEventListener('change', () => { V.setAuto(autoBox.checked); flash(autoBox.checked ? 'Auto-save is on.' : 'Auto-save is off. Use Save version to keep your edits.'); });
+    const name = h('input', { type: 'text', class: 'verName', placeholder: 'Name (optional)', maxlength: '40', 'aria-label': 'Version name' });
+    const saveBtn = h('button', { type: 'button', class: 'act primary', text: 'Save version' });
+    const status = h('p', { class: 'status', 'aria-live': 'polite' });
+    const ul = h('ul', { class: 'verList' });
+    body.append(
+      h('label', { class: 'check', for: 'autoSave' }, autoBox, h('span', { text: 'Auto-save my edits in this browser' })),
+      h('div', { class: 'verSave' }, name, saveBtn), status, ul,
+      h('p', { class: 'note', text: V.available
+        ? 'Versions are kept in this browser only. Auto-snapshots are taken while you edit (at most one a minute) and before every restore. To make values permanent for everyone, use Copy settings and send it to Claude.'
+        : 'This browser is blocking storage here, so versions can\u2019t be kept. Use Copy settings to keep your values.' }));
+    let flashT = null;
+    function flash(msg) { status.textContent = msg; clearTimeout(flashT); flashT = setTimeout(() => { status.textContent = ''; }, 3000); }
+    const when = t => new Date(t).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    function render() {
+      ul.textContent = '';
+      const items = V.list();
+      if (!items.length) { ul.append(h('li', { class: 'empty', text: 'No versions yet.' })); return; }
+      items.forEach(v => {
+        const restore = h('button', { type: 'button', class: 'act small', text: 'Restore' });
+        const del = h('button', { type: 'button', class: 'step del', 'aria-label': 'Delete ' + v.name, title: 'Delete', text: '×' });
+        restore.addEventListener('click', () => { V.restore(v.id, refreshAll); flash(`Restored “${v.name}”. The previous state was saved as a version.`); });
+        del.addEventListener('click', () => V.remove(v.id));
+        ul.append(h('li', { class: v.kind === 'manual' ? 'manual' : 'auto' },
+          h('div', { class: 'verInfo' }, h('strong', { text: v.name }), h('small', { text: (v.kind === 'manual' ? '' : 'auto · ') + when(v.t) })),
+          restore, del));
+      });
+    }
+    saveBtn.addEventListener('click', () => { V.save(name.value.trim()); name.value = ''; flash('Version saved.'); });
+    name.addEventListener('keydown', e => { if (e.key === 'Enter') saveBtn.click(); });
+    V.onChange(render); render();
+    dock.append(panel);
+    function setOpen(open) {
+      panel.classList.toggle('closed', !open); toggle.setAttribute('aria-expanded', String(open));
+      try { localStorage.setItem('fmm-versions-open', open ? '1' : '0'); } catch (_) { /* storage unavailable */ }
+    }
+    toggle.addEventListener('click', () => setOpen(panel.classList.contains('closed')));
+    let startOpen = true;
+    try { startOpen = localStorage.getItem('fmm-versions-open') !== '0'; } catch (_) { /* storage unavailable */ }
+    setOpen(startOpen);
+  }
+  if (App.versions && (C.showTriggerPanel || C.showColorPanel || C.showWindowPanel || C.showPanel)) versionsPanel();
 
   if (C.showTriggerPanel) {
     const box = h('input', { type: 'checkbox', id: 'showZones', checked: '' });

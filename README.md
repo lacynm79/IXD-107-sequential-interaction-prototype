@@ -20,6 +20,8 @@ Each step only unlocks after the previous one succeeds. Between steps, a snooze 
 
 **Reset:** pull the chain on the light bulb in the top-left corner (the round tag with the reset arrow).
 
+**Versions panel:** at the top of the dock. *Auto-save my edits in this browser* (on by default) keeps your panel edits across reloads. *Save version* stores a named snapshot. The list shows saved versions plus automatic snapshots (taken while you edit, at most once a minute, and before every restore), each with *Restore* and delete. Versions live in that browser only; to make values permanent for everyone, use *Copy settings* and send it to Claude.
+
 **Triggers panel:** a collapsible panel on the left for what it takes to complete each step: hold time and bar travel for the snooze; slaps needed, minimum time between slaps, hit-area margin and how high the hand lifts between slaps; shakes needed, minimum swing distance, maximum time per swing, how close to the clock shaking starts, and when the rage fades; grab radius, minimum drag distance and minimum fling speed for the throw; and the wake-up delay. Units and ranges are labeled, changes apply right away, *Show trigger zones* outlines the current hit area on the stage, and *Preview from* replays any step.
 
 **Colors panel:** a collapsible panel below it. Choose an item from the menu (grouped by room, bed, sleeper, nightstand, alarm clock, window cast, reset light; ‹ › step through them), then pick its color from the full-spectrum square and rainbow hue strip, a quick swatch, a hex code, or the system picker. *Item default* resets just that item. Colors change on the stage as you pick them. The rooster, neighbor, window frame, skies and ring lines are bitmaps from the studies and keep their own colors.
@@ -44,6 +46,7 @@ It's best viewed on a landscape screen. On an upright phone the whole room still
 | `css/style.css` | Layout and type |
 | `js/config.js` | Saved defaults, the control lists for the three panels, easing curves, and color variables |
 | `js/sky.js` | Draws each time of day's window sky from the Window panel settings |
+| `js/versions.js` | Auto-save and saved versions (kept in the browser's local storage) |
 | `js/panel.js` | The floating control panels (triggers, colors, and the hidden motion panel) |
 | `js/audio.js` | Synthesized ring (from Slap the Alarm Quiet), escalation levels, sound effects |
 | `js/scene.js` | Shared state and drawing: clock, hand and arm, blanket, window cast, camera, floating text |
