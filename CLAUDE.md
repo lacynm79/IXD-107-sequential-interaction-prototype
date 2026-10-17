@@ -2,6 +2,7 @@
 
 - Commit to `main` unless told otherwise.
 - Live web pages go in the repository root (`/`), which GitHub Pages serves from `main` / root.
+- Every time a change is applied to the live site, push it to `main` and also publish the root page (with its `css/`, `js/` and `assets/` files) to the Claude artifact preview, so the change can be viewed right away while GitHub Pages builds and deploys. Update the same artifact each time (https://claude.ai/artifact/VVpES7H69aPkkaVbZxCbeY, pass it as `url` from a new session) rather than creating a new one, and give the user its link.
 
 ## How to ask questions
 
