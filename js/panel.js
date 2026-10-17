@@ -251,7 +251,7 @@
   const SWATCHES = ['#111111', '#222222', '#444444', '#6f6f6f', '#9a9a9a', '#c4c4c4', '#e2e2e2', '#ffffff',
     '#b03030', '#e0663a', '#e8b23a', '#f2e3b3', '#5f9e4a', '#2f7f7a', '#3a6fb0', '#7a4fb0', '#c45a8f', '#7a5230'];
 
-  function spectrumPicker(body, groups, inputs, selectId) {
+  function spectrumPicker(body, groups, inputs, selectId, onPick) {
     const items = [];
     const sel = h('select', { id: selectId, class: 'colorItem', 'aria-label': 'Item to color' });
     groups.forEach(([group, rows]) => {
@@ -301,6 +301,7 @@
     }
     function commit(c, reload) {
       C.set(key, c);
+      if (onPick) onPick(key);
       hex.value = c; native.value = c; sw.style.background = c;
       if (reload) load(key); else paint();
     }
@@ -374,7 +375,11 @@
       const colors = rows.filter(r => r[2] === 'color').map(([k, text]) => [k, text]);
       const cdet = h('details', { open: '' }, h('summary', { text: `${T} colors` }));
       area.append(cdet);
-      spectrumPicker(cdet, [[`${T} colors`, colors]], inputs, 'winColorItem');
+      // the study artwork sits on top of the gradient, so picking a sky color turns the artwork off
+      spectrumPicker(cdet, [[`${T} colors`, colors]], inputs, 'winColorItem', k => {
+        const art = `win${T}Art`;
+        if (/(Top|Bottom)$/.test(k) && cfg[art]) { C.set(art, false); if (inputs[art]) inputs[art].set(false); }
+      });
     }
     // the scene asks which time of day to preview: only while you're working in the sky editor
     // (pointer over it, or a change in the last 2.5 s); otherwise the story's sky shows

@@ -155,7 +155,7 @@ window.App = window.App || {};
   // Window panel: what the window shows. One set of sky settings per time of day.
   const TODS = [['Dawn', 'dawn'], ['Day', 'day'], ['Sunset', 'sunset'], ['Night', 'night']];
   const SKY_ROWS = T => [
-    [`win${T}Art`, 'Original study artwork', 'check'],
+    [`win${T}Art`, 'Original study artwork (covers the sky colors)', 'check'],
     [`win${T}Top`, 'Sky top', 'color'],
     [`win${T}Bottom`, 'Sky bottom', 'color'],
     [`win${T}Sun`, 'Sun', 'check'],
