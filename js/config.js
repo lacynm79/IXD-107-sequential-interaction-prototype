@@ -78,6 +78,7 @@ window.App = window.App || {};
       ['slapsNeeded', 'Slaps to silence it', 'range', 1, 8, 1, 'slaps'],
       ['slapGapMs', 'Minimum time between slaps', 'range', 0, 1000, 10, 'ms', 'faster slaps are ignored'],
       ['slapPad', 'Hit area around the clock', 'range', 0, 150, 5, 'room px', 'extra margin that still counts'],
+      ['slapLift', 'Hand lift between slaps', 'range', 30, 260, 5, 'room px', 'gap above the clock top'],
     ]],
     ['3 · Fist', [
       ['fistShakes', 'Shakes to fill the rage', 'range', 1, 10, 1, 'shakes'],
@@ -230,7 +231,7 @@ window.App = window.App || {};
     burstDelayMs: 5200, rollMs: 1300, rollEase: 'easeInOut',
     // trigger panel
     wakeDelayMs: 950, snoozeTravel: 14,
-    slapsNeeded: 4, slapGapMs: 0, slapPad: 0,
+    slapsNeeded: 4, slapGapMs: 0, slapPad: 0, slapLift: 150,
     fistSwingPx: 21, fistSwingMs: 1300, fistReachPx: 380, fistFadeMs: 2500,
     throwGrabPx: 131, throwDragPx: 112,
     // color panel

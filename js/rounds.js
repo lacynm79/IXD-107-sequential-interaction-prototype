@@ -123,7 +123,8 @@ App.rounds = (() => {
     const REST = [1, .84, .71, .6, .42];
     const RING = [1, .62, .4, .22, 0];
     const at = (arr, f) => { const x = clamp(f, 0, 1) * 4, i = Math.min(3, Math.floor(x)); return arr[i] + (arr[i + 1] - arr[i]) * (x - i); };
-    const REST_PALM = { x: 720, y: 372 };
+    // resting hand hovers this far above the snooze bar between slaps (Triggers panel: slapLift)
+    const REST_PALM = { x: 720, get y() { return S.HOME.y - 198 * S.CS - App.cfg.slapLift; } };
     let s, timers = [], missT = null;
     function start(now) {
       s = { hits: 0, done: false, bounce: null, lastSlap: -1e9,
