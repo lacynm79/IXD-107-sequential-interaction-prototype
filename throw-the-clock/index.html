@@ -1,0 +1,367 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Throw the Clock</title>
+<style>
+/* Layout: one full-bleed stage, wall on the right edge, single reset control bottom-left. Committed single grayscale look. */
+:root{
+  --ground:#d6d6d6;
+  --ink:#222222;
+  --btn:#d0d0d0;
+  --btn-hover:#bdbdbd;
+  color-scheme:light;
+}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--ground);color:var(--ink)}
+body{display:grid;place-items:center}
+#stage{display:block;width:min(100vw, calc(100vh * 16 / 9));aspect-ratio:16/9;height:auto;background:#ececec;touch-action:none;-webkit-user-select:none;user-select:none}
+#reset{
+  position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  width:44px;height:44px;border-radius:50%;border:3px solid var(--ink);background:var(--btn);
+  display:grid;place-items:center;cursor:pointer;padding:0;
+}
+#reset:hover{background:var(--btn-hover)}
+#reset:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+#reset svg{width:22px;height:22px}
+</style>
+
+<canvas id="stage" aria-label="An alarm clock ringing at 11:27 next to a wall"></canvas>
+<button id="reset" aria-label="Reset">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#222222" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>
+</button>
+
+<script>
+(() => {
+const SVG = {
+  arm:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 60" width="340" height="120" overflow="hidden"><rect x="6" y="8" width="158" height="44" rx="22" fill="#8c8c8c" stroke="#222222" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><path d="M40,16 q6,14 0,28 M90,16 q6,14 0,28" fill="none" stroke="#6f6f6f" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+  body:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 100" width="280" height="200"><rect x="24" y="80" width="14" height="12" rx="2" fill="#d9d9d9" stroke="#222222" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><rect x="102" y="80" width="14" height="12" rx="2" fill="#d9d9d9" stroke="#222222" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><rect x="12" y="8" width="116" height="76" rx="18" fill="#7a7a7a" stroke="#222222" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><rect x="28" y="22" width="84" height="42" rx="5" fill="#2b2b2b" stroke="#222222" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/></svg>`,
+  bell:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 46" width="112" height="92"><line x1="28" y1="40" x2="28" y2="14" stroke="#222222" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><circle cx="28" cy="10" r="4" fill="#e2e2e2" stroke="#222222" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><path d="M6,40 A22,22 0 0 1 50,40 Z" fill="#e2e2e2" stroke="#222222" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/></svg>`,
+  cracks:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 84 120" width="168" height="240" overflow="hidden"><path d="M78,72 l-18,-14 l-6,-18 M78,72 l-24,6 l-14,-6 l-10,8 M78,72 l-14,22 l4,18 M60,58 l-12,2 M54,78 l2,14 M78,72 l-30,-30" fill="none" stroke="#222222" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  fist:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 64" width="192" height="128" overflow="hidden"><g transform="translate(30 32)"><rect x="-6" y="-25" width="58" height="50" rx="18" fill="#d0d0d0" stroke="#222222" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><circle cx="50" cy="-16" r="8" fill="#d0d0d0" stroke="#222222" stroke-width="3"/><circle cx="53" cy="-5" r="8" fill="#d0d0d0" stroke="#222222" stroke-width="3"/><circle cx="53" cy="6" r="8" fill="#d0d0d0" stroke="#222222" stroke-width="3"/><circle cx="49" cy="17" r="7.5" fill="#d0d0d0" stroke="#222222" stroke-width="3"/><rect x="12" y="-7" width="36" height="11" rx="5.5" fill="#d0d0d0" stroke="#222222" stroke-width="3"/><rect x="-24" y="-27" width="20" height="54" rx="6" fill="#6f6f6f" stroke="#222222" stroke-width="3" stroke-linejoin="round"/></g></svg>`,
+  hand:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 76" width="256" height="152"><g transform="translate(32 40)"><rect x="40" y="-22" width="44" height="11" rx="5.5" fill="#d0d0d0" stroke="#222222" stroke-width="3"/><rect x="40" y="-11" width="46" height="11" rx="5.5" fill="#d0d0d0" stroke="#222222" stroke-width="3"/><rect x="40" y="0" width="43" height="11" rx="5.5" fill="#d0d0d0" stroke="#222222" stroke-width="3"/><rect x="40" y="11" width="36" height="11" rx="5.5" fill="#d0d0d0" stroke="#222222" stroke-width="3"/><rect x="-6" y="-23" width="56" height="46" rx="15" fill="#d0d0d0" stroke="#222222" stroke-width="3"/><rect x="16" y="-33" width="32" height="11" rx="5.5" transform="rotate(-14 16 -28)" fill="#d0d0d0" stroke="#222222" stroke-width="3"/><rect x="-26" y="-26" width="20" height="52" rx="6" fill="#6f6f6f" stroke="#222222" stroke-width="3" stroke-linejoin="round"/></g></svg>`,
+  rings:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 76" width="480" height="152"><g fill="none" stroke="#222222" stroke-width="4" stroke-linecap="round"><path d="M40,30 l-14,-12 M32,52 l-20,-2 M54,14 l-6,-10"/><path d="M200,30 l14,-12 M208,52 l20,-2 M186,14 l6,-10"/></g></svg>`,
+  snooze:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 22" width="112" height="44"><rect x="6" y="5" width="44" height="13" rx="3" fill="#e2e2e2" stroke="#222222" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><line x1="12" y1="9.5" x2="44" y2="9.5" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/></svg>`,
+  wall:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 220" width="140" height="440" preserveAspectRatio="none" overflow="hidden"><rect x="0" y="0" width="70" height="220" fill="#bcbcbc"/><line x1="4" y1="0" x2="4" y2="220" stroke="#222222" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/></svg>`
+};
+const IMG = {};
+let pending = Object.keys(SVG).length;
+for (const k in SVG) {
+  const i = new Image();
+  i.onload = i.onerror = () => { if (--pending === 0) start(); };
+  i.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(SVG[k]);
+  IMG[k] = i;
+}
+
+const cv = document.getElementById('stage');
+const ctx = cv.getContext('2d');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+let W, H, dpr, u, f, L, wallW, wallX, edgeX, rest, floorY;
+function layout() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = cv.clientWidth; H = cv.clientHeight;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  const clockW = Math.min(260, H * 0.3, W * 0.2);
+  u = clockW / 140; f = u * 1.25; L = 62 * u;
+  wallW = W * 0.09; wallX = W - wallW; edgeX = wallX + 4 * wallW / 70;
+  rest = { x: edgeX * 0.4, y: H * 0.62 };
+  floorY = H - 46 * u - 10;
+}
+
+// ---------- state ----------
+let state = 'idle', T = 0, mimeStart = 0.6;
+const c = { x: 0, y: 0, rot: 0, sx: 1, sy: 1 };
+const hand = { x: 0, y: 0, vx: 0, vy: 0, mode: 'mime', alpha: 0.55 };
+const ptr = { x: 0, y: 0 };
+let grabOff = { x: 0, y: 0 }, th = 0, thd = 0, dragDist = 0, lastPtr = null;
+let bellFx = null, fly = null, drop = null, impact = null, crack = null, shake = 0, slideV = 0, landed = false;
+
+function resetAll() {
+  state = 'idle'; mimeStart = T + 0.5;
+  c.x = rest.x; c.y = rest.y; c.rot = 0; c.sx = c.sy = 1;
+  hand.mode = 'mime'; hand.alpha = 0.55;
+  fly = drop = impact = crack = bellFx = null; shake = 0; slideV = 0; landed = false;
+  cv.style.cursor = 'default';
+}
+
+// ---------- input ----------
+function localPt(e) { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+function overClock(p) { return Math.hypot(p.x - c.x, p.y - (c.y - 10 * u)) < 78 * u; }
+
+cv.addEventListener('pointerdown', e => {
+  const p = localPt(e);
+  if (state !== 'idle' || !overClock(p)) return;
+  cv.setPointerCapture(e.pointerId);
+  ptr.x = p.x; ptr.y = p.y; lastPtr = p;
+  // pivot = grip point at the top of the clock
+  const px = c.x + Math.sin(c.rot) * L, py = c.y - Math.cos(c.rot) * L;
+  hand.x = px; hand.y = py; hand.vx = 0; hand.vy = 0; hand.mode = 'fist'; hand.alpha = 1;
+  grabOff = { x: px - p.x, y: py - p.y };
+  th = -c.rot; thd = 0; dragDist = 0;
+  state = 'held'; cv.style.cursor = 'grabbing';
+});
+cv.addEventListener('pointermove', e => {
+  const p = localPt(e);
+  if (state === 'held') {
+    if (lastPtr) dragDist += Math.hypot(p.x - lastPtr.x, p.y - lastPtr.y);
+    lastPtr = p; ptr.x = p.x; ptr.y = p.y;
+  } else {
+    cv.style.cursor = state === 'idle' && overClock(p) ? 'grab' : 'default';
+  }
+});
+function release() {
+  if (state !== 'held') return;
+  const vx = hand.vx + L * thd * Math.cos(th), vy = hand.vy - L * thd * Math.sin(th);
+  const speed = Math.hypot(vx, vy);
+  hand.mode = 'open';
+  cv.style.cursor = 'default';
+  if (speed > 850 && dragDist > 70 * u) startFly(vx, vy, speed);
+  else startDrop();
+}
+cv.addEventListener('pointerup', release);
+cv.addEventListener('pointercancel', release);
+
+// ---------- transitions ----------
+function startDrop() {
+  state = 'drop';
+  drop = { t: 0, x0: c.x, y0: c.y, r0: c.rot };
+}
+function startFly(vx, vy, speed) {
+  state = 'fly';
+  const dur = Math.max(0.34, Math.min(0.56, 0.62 - speed / 9000));
+  const P0 = { x: c.x, y: c.y };
+  const P1 = { x: Math.max(20, Math.min(W - 20, P0.x + vx * dur * 0.3)), y: Math.max(20, Math.min(H - 20, P0.y + vy * dur * 0.3)) };
+  const iy = Math.max(H * 0.25, Math.min(H * 0.66, c.y + vy * 0.1));
+  const P3 = { x: edgeX - 66 * u, y: iy };
+  const P2 = { x: P3.x - W * 0.16, y: P3.y - H * 0.14 - 20 * u };
+  const dir = Math.sign(vx) || 1;
+  let r1 = 0.18 + dir * 0.12;
+  fly = { t: 0, dur, P0, P1, P2, P3, r0: c.rot, r1 };
+}
+function bez(a, b, cc, d, t) { const m = 1 - t; return m * m * m * a + 3 * m * m * t * b + 3 * m * t * t * cc + t * t * t * d; }
+function hitWall() {
+  state = 'smash';
+  impact = { t: T };
+  crack = { x: edgeX, y: c.y, s: 0 };
+  shake = reduce ? 0.25 : 1;
+  c.sx = 0.78; c.sy = 1.12;
+  let r = Math.atan2(Math.sin(c.rot), Math.cos(c.rot));
+  c.rot = r; slideV = 0; landed = false;
+  const bx = 44 * u, by = -44 * u;
+  bellFx = { x: c.x + bx * Math.cos(r) - by * Math.sin(r), y: c.y + bx * Math.sin(r) + by * Math.cos(r),
+             vx: -160, vy: -320, r: r + 0.4, vr: -9, done: false };
+}
+
+// ---------- idle hand mime ----------
+const ease = k => k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+function mimePose() {
+  const gx = rest.x, gy = rest.y - L;
+  const hover = { x: gx, y: gy - 34 * u + Math.sin(T * 2.4) * 3 * u };
+  if (T < mimeStart) return { ...hover, closed: false };
+  const p = ((T - mimeStart) % 3.8) / 3.8;
+  if (p < 0.22) return { ...hover, closed: false };
+  if (p < 0.34) { const k = ease((p - 0.22) / 0.12); return { x: hover.x, y: hover.y + (gy - hover.y) * k, closed: false }; }
+  if (p < 0.42) return { x: gx, y: gy, closed: true };
+  const sw = k => ({ x: gx - 45 * u * Math.sin(k * Math.PI) * (1 - k) + 95 * u * k * k, y: gy + 18 * u * Math.sin(k * Math.PI) - 34 * u * k * k });
+  if (p < 0.74) return { ...sw(ease((p - 0.42) / 0.32)), closed: true };
+  const E = sw(1);
+  if (p < 0.8) { const k = (p - 0.74) / 0.06; return { x: E.x + 18 * u * k, y: E.y - 18 * u * k, closed: false }; }
+  const k = ease((p - 0.8) / 0.2), sx = E.x + 18 * u, sy = E.y - 18 * u;
+  return { x: sx + (hover.x - sx) * k, y: sy + (hover.y - sy) * k, closed: false };
+}
+
+// ---------- update ----------
+function update(dt) {
+  if (state === 'idle') {
+    const r = reduce ? 0.4 : 1;
+    c.x = rest.x + (Math.sin(T * 55) * 1.6 + Math.sin(T * 37) * 0.9) * u * r;
+    c.y = rest.y - Math.abs(Math.sin(T * 60)) * 1.4 * u * r;
+    c.rot = Math.sin(T * 47) * 0.035 * r;
+    const m = mimePose();
+    hand.x = m.x; hand.y = m.y; hand.mode = m.closed ? 'fistGhost' : 'mime';
+    hand.alpha += (0.55 - hand.alpha) * Math.min(1, dt * 4);
+  }
+  if (state === 'held') {
+    const steps = 4, h = dt / steps, k = 110, d = 2 * Math.sqrt(k) * 0.75, G = 2600, sag = k * 7 * u;
+    for (let i = 0; i < steps; i++) {
+      const tx = ptr.x + grabOff.x, ty = ptr.y + grabOff.y;
+      const ax = k * (tx - hand.x) - d * hand.vx;
+      const ay = k * (ty - hand.y) - d * hand.vy + sag;
+      hand.vx += ax * h; hand.vy += ay * h;
+      hand.x += hand.vx * h; hand.y += hand.vy * h;
+      const thdd = -((G + ay) / L) * Math.sin(th) - (ax / L) * Math.cos(th) - 1.3 * thd;
+      thd += thdd * h; th += thd * h;
+      const lim = 1.0;
+      if (th > lim) { th = lim; if (thd > 0) thd *= -0.25; }
+      if (th < -lim) { th = -lim; if (thd < 0) thd *= -0.25; }
+    }
+    hand.x = Math.max(0, Math.min(W, hand.x)); hand.y = Math.max(-L, Math.min(H, hand.y));
+    c.x = hand.x + L * Math.sin(th); c.y = hand.y + L * Math.cos(th); c.rot = -th;
+  }
+  if (state === 'drop') {
+    drop.t += dt; const k = Math.min(1, drop.t / 0.55);
+    const bounce = k < 0.7 ? Math.pow(k / 0.7, 2) : 1 - Math.sin((k - 0.7) / 0.3 * Math.PI) * 0.08;
+    c.x = drop.x0 + (rest.x - drop.x0) * ease(k);
+    c.y = drop.y0 + (rest.y - drop.y0) * bounce;
+    c.rot = drop.r0 * (1 - ease(k)) + Math.sin(k * 14) * 0.05 * (1 - k);
+    // hand returns to hover
+    const hx = rest.x, hy = rest.y - L - 34 * u;
+    hand.x += (hx - hand.x) * Math.min(1, dt * 5); hand.y += (hy - hand.y) * Math.min(1, dt * 5);
+    if (k >= 1) { state = 'idle'; mimeStart = T + 1.0; }
+  }
+  if (state === 'fly') {
+    fly.t += dt; const k = Math.min(1, fly.t / fly.dur), kk = k * 0.7 + k * k * 0.3;
+    c.x = bez(fly.P0.x, fly.P1.x, fly.P2.x, fly.P3.x, kk);
+    c.y = bez(fly.P0.y, fly.P1.y, fly.P2.y, fly.P3.y, kk);
+    c.rot = fly.r0 + (fly.r1 - fly.r0) * kk;
+    if (k >= 1) hitWall();
+  }
+  if (state === 'fly' || state === 'smash' || state === 'dead') {
+    // released hand opens and withdraws
+    hand.vy -= 900 * dt; hand.y += hand.vy * dt; hand.x += (hand.vx *= 0.9) * dt;
+    hand.alpha = Math.max(0, hand.alpha - dt * 0.8);
+  }
+  if (state === 'smash' || state === 'dead') {
+    const since = T - impact.t;
+    crack.s = Math.min(1, since / 0.08);
+    c.sx += (1 - c.sx) * Math.min(1, dt * 14); c.sy += (1 - c.sy) * Math.min(1, dt * 14);
+    if (since > 0.22 && !landed) {
+      slideV = Math.min(520, slideV + 1100 * dt);
+      c.y += slideV * dt;
+      c.x += (edgeX - 66 * u - c.x) * Math.min(1, dt * 8);
+      c.rot += (0.1 - c.rot) * Math.min(1, dt * 3);
+      if (c.y >= floorY) { c.y = floorY; landed = true; state = 'dead'; shake = Math.max(shake, reduce ? 0.1 : 0.3); }
+    }
+    if (landed) c.rot += (0 - c.rot) * Math.min(1, dt * 6);
+  }
+  if (bellFx && !bellFx.done) {
+    bellFx.vy += 1900 * dt; bellFx.x += bellFx.vx * dt; bellFx.y += bellFx.vy * dt; bellFx.r += bellFx.vr * dt;
+    const fy = H - 8 * u;
+    if (bellFx.y >= fy) {
+      bellFx.y = fy;
+      if (Math.abs(bellFx.vy) < 160) { bellFx.done = true; bellFx.r = -0.3; }
+      else { bellFx.vy *= -0.3; bellFx.vx *= 0.5; bellFx.vr *= 0.4; }
+    }
+  }
+  shake = Math.max(0, shake - dt * 3.5);
+}
+
+// ---------- draw ----------
+function displayText() {
+  if (state !== 'smash' && state !== 'dead') return { s: '11:27', a: 1 };
+  const since = T - impact.t;
+  if (since > 1.7) return null;
+  const tick = Math.floor(since / 0.075);
+  const r = Math.abs(Math.sin(tick * 12.9898) * 43758.5453) % 1;
+  if (r < 0.45 - since * 0.15) return { s: '8:88', a: 0.55 + r };
+  if (r > 0.9 && since < 0.6) return { s: '1:2', a: 0.4 };
+  return null;
+}
+function drawClock() {
+  const ringing = state === 'idle' || state === 'held' || state === 'drop' || state === 'fly';
+  ctx.save();
+  ctx.translate(c.x, c.y); ctx.rotate(c.rot); ctx.scale(c.sx, c.sy);
+  if (ringing) {
+    const pulse = 1 + 0.1 * Math.sin(T * 40);
+    ctx.save(); ctx.translate(0, -72 * u); ctx.scale(pulse, pulse);
+    ctx.globalAlpha = 0.75 + 0.25 * Math.sin(T * 33);
+    ctx.drawImage(IMG.rings, -120 * u, -26 * u, 240 * u, 76 * u);
+    ctx.restore();
+  }
+  const wob = ringing ? Math.sin(T * 52) * 0.13 : 0;
+  const broken = state === 'smash' || state === 'dead';
+  for (const s of [-1, 1]) {
+    if (broken && s === 1) continue; // knocked off
+    ctx.save(); ctx.translate(s * 44 * u, -44 * u); ctx.rotate(s * 0.4 + wob * s + (broken ? -0.55 : 0));
+    ctx.drawImage(IMG.bell, -28 * u, -40 * u, 56 * u, 46 * u); ctx.restore();
+  }
+  if (broken) {
+    ctx.save(); ctx.translate(-6 * u, -51 * u); ctx.rotate(-0.38);
+    ctx.drawImage(IMG.snooze, -28 * u, -11 * u, 56 * u, 22 * u); ctx.restore();
+  } else ctx.drawImage(IMG.snooze, -28 * u, -58 * u, 56 * u, 22 * u);
+  ctx.drawImage(IMG.body, -70 * u, -50 * u, 140 * u, 100 * u);
+  const t = displayText();
+  if (t) {
+    ctx.globalAlpha = Math.min(1, t.a);
+    ctx.fillStyle = '#cfcfcf';
+    ctx.font = `700 ${24 * u}px ui-monospace, Menlo, Consolas, monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText(t.s, 0, 4 * u);
+    ctx.globalAlpha = 1;
+  }
+  if (broken) {
+    // shattered display + cracked casing on the wall side
+    ctx.save(); ctx.beginPath(); ctx.roundRect(-42 * u, -28 * u, 84 * u, 42 * u, 5 * u); ctx.clip();
+    strokeCrack(42 * u, -24 * u, 1.0 * u, 0.75 * u, 0.15, '#9a9a9a', 2 * u);
+    ctx.restore();
+    strokeCrack(66 * u, 24 * u, 0.6 * u, 0.6 * u, 0.5, '#222222', 2.2 * u);
+  }
+  ctx.restore();
+}
+const CRACK = new Path2D('M78,72 l-18,-14 l-6,-18 M78,72 l-24,6 l-14,-6 l-10,8 M78,72 l-14,22 l4,18 M60,58 l-12,2 M54,78 l2,14 M78,72 l-30,-30');
+function strokeCrack(x, y, sx, sy, rot, color, width) {
+  const p = new Path2D();
+  p.addPath(CRACK, new DOMMatrix().translateSelf(x, y).rotateSelf(rot * 180 / Math.PI).scaleSelf(sx, sy).translateSelf(-78, -72));
+  ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(p); ctx.restore();
+}
+function drawHand() {
+  if (hand.alpha <= 0.01) return;
+  const closed = hand.mode === 'fist' || hand.mode === 'fistGhost';
+  // hand reaches in sideways from the left, arm runs off the left edge
+  const sx = -W * 0.25, sy = hand.y + H * 0.1;
+  const hr = Math.max(-0.3, Math.min(0.3, Math.atan2(hand.y - sy, hand.x - sx) * 0.6));
+  const ox = closed ? 60 : 70, oy = closed ? 56 : 63;      // grip point inside the SVG
+  const cx0 = (16 - ox) * f, cy0 = ((closed ? 32 : 40) - oy) * f; // cuff center
+  const wx = hand.x + cx0 * Math.cos(hr) - cy0 * Math.sin(hr);
+  const wy = hand.y + cx0 * Math.sin(hr) + cy0 * Math.cos(hr);
+  const aa = Math.atan2(sy - wy, sx - wx), len = Math.hypot(sx - wx, sy - wy) + 60 * f, th = 44 * f;
+  ctx.save(); ctx.globalAlpha = hand.alpha;
+  // arm: same capsule as arm.svg, lengthened (not stretched)
+  ctx.save(); ctx.translate(wx, wy); ctx.rotate(aa);
+  ctx.beginPath(); ctx.roundRect(0, -th / 2, len, th, th / 2);
+  ctx.fillStyle = '#8c8c8c'; ctx.fill();
+  ctx.lineWidth = 3 * f * 0.9; ctx.strokeStyle = '#222222'; ctx.lineJoin = 'round'; ctx.stroke();
+  ctx.beginPath();
+  for (const cx of [th * 0.9, th * 2.1]) { ctx.moveTo(cx, -th * 0.36); ctx.quadraticCurveTo(cx + th * 0.27, 0, cx, th * 0.36); }
+  ctx.lineWidth = 2.5 * f * 0.9; ctx.strokeStyle = '#6f6f6f'; ctx.lineCap = 'round'; ctx.stroke();
+  ctx.restore();
+  ctx.translate(hand.x, hand.y); ctx.rotate(hr);
+  if (closed) ctx.drawImage(IMG.fist, -ox * f, -oy * f, 96 * f, 64 * f);
+  else ctx.drawImage(IMG.hand, -ox * f, -oy * f, 128 * f, 76 * f);
+  ctx.restore();
+}
+function draw() {
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = '#ececec'; ctx.fillRect(0, 0, W, H);
+  ctx.save();
+  if (shake > 0) ctx.translate((Math.random() - 0.5) * 18 * shake, (Math.random() - 0.5) * 12 * shake);
+  ctx.drawImage(IMG.wall, wallX, -20, wallW + 20, H + 40);
+  if (crack && crack.s > 0) {
+    const k = 0.5 + 0.5 * crack.s;
+    strokeCrack(crack.x, crack.y, -1.4 * u * k, 3.2 * u * k, 0, '#222222', 3 * u);
+    strokeCrack(crack.x, crack.y, -1.1 * u * k, -2.4 * u * k, 0.2, '#222222', 2.4 * u);
+  }
+  drawClock();
+  if (bellFx) { ctx.save(); ctx.translate(bellFx.x, bellFx.y); ctx.rotate(bellFx.r); ctx.drawImage(IMG.bell, -28 * u, -40 * u, 56 * u, 46 * u); ctx.restore(); }
+  drawHand();
+  ctx.restore();
+}
+
+let last = 0;
+function frame(ts) {
+  const now = ts / 1000, dt = Math.min(1 / 30, last ? now - last : 1 / 60);
+  last = now; T += dt;
+  update(dt); draw();
+  requestAnimationFrame(frame);
+}
+function start() {
+  layout(); resetAll();
+  requestAnimationFrame(frame);
+}
+addEventListener('resize', () => {
+  layout();
+  if (state === 'idle') { c.x = rest.x; c.y = rest.y; }
+  if (state === 'dead') { c.x = edgeX - 66 * u; c.y = floorY; if (crack) crack.x = edgeX; }
+});
+document.getElementById('reset').addEventListener('click', () => { resetAll(); });
+})();
+</script>
+
+</body></html>
