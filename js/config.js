@@ -264,7 +264,7 @@ window.App = window.App || {};
     slapsNeeded: 4, slapGapMs: 0, slapPad: 0, slapLift: 150,
     fistSwingPx: 21, fistSwingMs: 1300, fistReachPx: 380, fistFadeMs: 2500,
     throwGrabPx: 131, throwDragPx: 112,
-    bulbScale: 1, bugScale: 1, chainLen: 1, tagScale: 1,
+    bulbScale: 1.6, bugScale: 1.35, chainLen: 0.7, tagScale: 1.3,
     // color panel
     colWall: '#ececec', colSideWall: '#bcbcbc', colFloor: '#614c4c', colFloorLine: '#bcbcbc', colBaseboard: '#bdbdbd',
     colPage: '#d6d6d6', colInk: '#222222',
