@@ -35,13 +35,13 @@ App.versions = (() => {
   }
 
   // on load: bring back the last edits if auto-save is on
-  // (not on the public GitHub Pages site, which always shows the saved defaults; see TOOLS in js/config.js)
-  if (auto && C.tools) { const cur = get(K_CUR, null); if (cur) apply(cur); }
+  // (also on GitHub Pages, where the panels are hidden: your own browser keeps showing your edits there)
+  if (auto) { const cur = get(K_CUR, null); if (cur) apply(cur); }
 
   // while editing: keep the current state, and take an automatic snapshot at most once a minute
   let saveT = null, lastAuto = 0, applying = false;
   C.onChange(() => {
-    if (!auto || applying || !C.tools) return;
+    if (!auto || applying || !C.tools) return;          // only the panels make edits
     clearTimeout(saveT);
     saveT = setTimeout(() => {
       put(K_CUR, snapshot());

@@ -256,9 +256,8 @@ window.App = window.App || {};
   const SHOW_TRIGGER_PANEL = true;
   const SHOW_COLOR_PANEL = true;
   const SHOW_WINDOW_PANEL = true;
-  // Tools (panels and auto-saved edits) appear in the Claude preview and local copies, not on the
-  // public GitHub Pages site, which always shows the saved defaults. Add ?tools to the GitHub
-  // address to bring them up there for one visit.
+  // The panels appear in the Claude preview and local copies, not on the public GitHub Pages site.
+  // Add ?tools to the GitHub address to bring them up there for one visit.
   const TOOLS = !/\.github\.io$/i.test(location.hostname) || /[?&]tools\b/.test(location.search);
 
   const listeners = [];
