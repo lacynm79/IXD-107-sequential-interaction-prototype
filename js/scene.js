@@ -167,16 +167,24 @@ App.scene = (() => {
     // the body follows the arm: the top shoulder lifts as the hand reaches up, and the head leans toward it
     const hd = W.hand, out = hd.mode !== 'hidden' ? clamp((SHOULDER.y - hd.y) / 260, 0, 1) * hd.alpha : 0;
     b.reach = (b.reach || 0) + (out - (b.reach || 0)) * .12;
-    const m = x => x + (830 - 2 * x) * k, f = v => v.toFixed(1);            // mirror across the bed for the roll
-    const pk = 552 - up - br - 6 * b.reach * (1 - k);
-    const d = `M256 704 L258 648 C258 ${f(616 - br)} ${f(m(282))} ${f(594 - up)} ${f(m(330))} ${f(590 - up)} ` +
-      `Q${f(m(362))} ${f(588 - up)} ${f(m(384))} ${f(592 - up)} C${f(m(414))} ${f(566 - up)} ${f(m(440))} ${f(pk)} ${f(m(482))} ${f(pk)} ` +
-      `C${f(m(532))} ${f(pk)} ${f(m(566))} ${f(598 - br)} ${f(m(570))} 648 L574 704 Q415 718 256 704 Z`;
+    const f = v => v.toFixed(1), pk = 552 - up - br - 6 * b.reach * (1 - k);
+    // top edge as a chain of cubic curves, left to right: [start, then c1, c2, end for each curve]
+    const q2c = (p0, q, p1) => [[p0[0] + (q[0] - p0[0]) * 2 / 3, p0[1] + (q[1] - p0[1]) * 2 / 3], [p1[0] + (q[0] - p1[0]) * 2 / 3, p1[1] + (q[1] - p1[1]) * 2 / 3], p1];
+    const P1 = [330, 590 - up], P2 = [384, 592 - up], P3 = [482, pk], P4 = [570, 648];
+    const chain = [[258, 648], [258, 616 - br], [282, 594 - up], P1, ...q2c(P1, [362, 588 - up], P2), [414, 566 - up], [440, pk], P3, [532, pk], [566, 598 - br], P4];
+    // rolling over: blend point by point into the same edge mirrored across the bed (and read right to left),
+    // so halfway through the body lies flat on its back instead of collapsing
+    const mir = chain.map(([x, y]) => [830 - x, y]).reverse();
+    const pts = chain.map((pt, i) => [pt[0] + (mir[i][0] - pt[0]) * k, pt[1] + (mir[i][1] - pt[1]) * k]);
+    let d = `M256 704 L${f(pts[0][0])} ${f(pts[0][1])}`;
+    for (let i = 1; i < pts.length; i += 3) d += ` C${pts.slice(i, i + 3).map(([x, y]) => `${f(x)} ${f(y)}`).join(' ')}`;
+    d += ' L574 704 Q415 718 256 704 Z';
+    const m = x => x + (830 - 2 * x) * k;
     el.blanket.setAttribute('d', d); el.blanketShade.setAttribute('d', d);
     el.blanketFold.setAttribute('d', `M${f(m(392))} ${f(602 - up)} Q${f(m(450))} ${f(574 - up)} ${f(m(520))} ${f(580 - up)}`);
     // the head turns with the body: at the end they face away from the clock (the ear swaps sides)
     const lean = b.reach * (1 - k);
-    el.hair.setAttribute('transform', `translate(${f(lean * 5 + 30 * k)} ${f(-b.jerk * 8 - lean * 3)}) rotate(${(lean * 8 - 8).toFixed(2)} 400 560) translate(400 552) scale(${(1 - 2 * k).toFixed(3)} 1) translate(-400 -552)`);
+    el.hair.setAttribute('transform', `translate(${f(lean * 5 + 30 * k)} ${f(-b.jerk * 8 - lean * 3)}) rotate(${(lean * 8 - 8).toFixed(2)} 400 560) translate(400 552) scale(${((k < .5 ? 1 : -1) * Math.max(.55, Math.abs(Math.cos(Math.PI * k)))).toFixed(3)} 1) translate(-400 -552)`);
     el.sleepFace.setAttribute('opacity', 1);
     el.backHair.setAttribute('opacity', 0);
   }

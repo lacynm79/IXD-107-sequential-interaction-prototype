@@ -10,7 +10,7 @@
     // Pages updates. Ask for the current version (never cached); if this copy is older,
     // reload under a fresh address so the new page and files load.
     (function () {
-      var PAGE_V = '20261020z';
+      var PAGE_V = '20261021a';
       try {
         fetch('version.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
           if (!j || !j.v || j.v === PAGE_V) return;
@@ -23,7 +23,7 @@
     })();
   </script>
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=20261020z">
+  <link rel="stylesheet" href="css/style.css?v=20261021a">
 </head>
 <body>
 
@@ -375,14 +375,14 @@
   </svg>
 </button>
 
-<script src="js/config.js?v=20261020z"></script>
-<script src="js/audio.js?v=20261020z"></script>
-<script src="js/scene.js?v=20261020z"></script>
-<script src="js/look.js?v=20261020z"></script>
-<script src="js/rounds.js?v=20261020z"></script>
-<script src="js/main.js?v=20261020z"></script>
-<script src="js/sky.js?v=20261020z"></script>
-<script src="js/versions.js?v=20261020z"></script>
-<script src="js/panel.js?v=20261020z"></script>
+<script src="js/config.js?v=20261021a"></script>
+<script src="js/audio.js?v=20261021a"></script>
+<script src="js/scene.js?v=20261021a"></script>
+<script src="js/look.js?v=20261021a"></script>
+<script src="js/rounds.js?v=20261021a"></script>
+<script src="js/main.js?v=20261021a"></script>
+<script src="js/sky.js?v=20261021a"></script>
+<script src="js/versions.js?v=20261021a"></script>
+<script src="js/panel.js?v=20261021a"></script>
 </body>
 </html>
