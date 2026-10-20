@@ -256,15 +256,20 @@ window.App = window.App || {};
   const SHOW_TRIGGER_PANEL = true;
   const SHOW_COLOR_PANEL = true;
   const SHOW_WINDOW_PANEL = true;
+  // Tools (panels and auto-saved edits) appear in the Claude preview and local copies, not on the
+  // public GitHub Pages site, which always shows the saved defaults. Add ?tools to the GitHub
+  // address to bring them up there for one visit.
+  const TOOLS = !/\.github\.io$/i.test(location.hostname) || /[?&]tools\b/.test(location.search);
 
   const listeners = [];
   App.cfg = { ...DEFAULTS };
   App.config = {
     SCHEMA, TRIGGER_SCHEMA, COLOR_SCHEMA, WINDOW_SCHEMA, TODS, DEFAULTS, EASE, EASE_LABELS,
-    showWindowPanel: SHOW_WINDOW_PANEL,
-    showColorPanel: SHOW_COLOR_PANEL,
-    showPanel: SHOW_PANEL || /[?&]panel\b/.test(location.search),
-    showTriggerPanel: SHOW_TRIGGER_PANEL,
+    tools: TOOLS,
+    showWindowPanel: TOOLS && SHOW_WINDOW_PANEL,
+    showColorPanel: TOOLS && SHOW_COLOR_PANEL,
+    showPanel: TOOLS && (SHOW_PANEL || /[?&]panel\b/.test(location.search)),
+    showTriggerPanel: TOOLS && SHOW_TRIGGER_PANEL,
     ease: name => EASE[App.cfg[name]] || EASE.easeInOut,
     set(key, value) { App.cfg[key] = value; listeners.forEach(fn => fn(key, value)); },
     restore(keys = Object.keys(DEFAULTS)) { keys.forEach(k => App.config.set(k, DEFAULTS[k])); },
