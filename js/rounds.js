@@ -216,9 +216,9 @@ App.rounds = (() => {
     const K = 1.3;                                     // study units to room units
     // the fist stays out between the shoulder and the clock, raised, so the arm reaches toward the clock
     // instead of folding back over the sleeper's head
-    const HOMEF = { x: 570, y: 410 };
-    const MAXX = 600;                                  // the fist can't reach the clock without the punch
-    const MINX = 470;
+    const HOMEF = { x: 600, y: 350 };
+    const MAXX = 615;                                  // the fist can't reach the clock without the punch
+    const MINX = 520;
     let s;
     function start(now) {
       s = { phase: 'clench', t0: now, rage: 0, lastGain: 0, fist: { ...HOMEF }, target: null,
@@ -244,7 +244,7 @@ App.rounds = (() => {
     }
     function makeContact(p, now) {
       s.contact = true;
-      s.fist.x = clamp(p.x, MINX, MAXX); s.fist.y = clamp(p.y, 270, 470);
+      s.fist.x = clamp(p.x, MINX, MAXX); s.fist.y = clamp(p.y, 260, 440);
       s.turnX = p.x; s.turnTime = now; s.prevX = p.x; s.lastDir = 0;
     }
     function move(p) {
@@ -341,12 +341,12 @@ App.rounds = (() => {
         const active = s.contact && s.target && now - s.lastMove < 1400;
         let bx, by, rot = 0;
         if (active) {
-          const tx = clamp(s.target.x, MINX, MAXX), ty = clamp(s.target.y, 270, 470);
+          const tx = clamp(s.target.x, MINX, MAXX), ty = clamp(s.target.y, 260, 440);
           const fk = 1 - Math.pow(1 - .22, dt / 16.7);
           s.fist.x += (tx - s.fist.x) * fk; s.fist.y += (ty - s.fist.y) * fk;
           bx = s.fist.x; by = s.fist.y;
         } else {
-          const ix = CLOCK_C.x - 150, iy = CLOCK_C.y - 110;
+          const ix = CLOCK_C.x - 125, iy = CLOCK_C.y - 170;
           const ik = 1 - Math.pow(1 - .05, dt / 16.7);
           s.fist.x += (ix - s.fist.x) * ik; s.fist.y += (iy - s.fist.y) * ik;
           const ph = (now % 1100) / 1100;
@@ -369,7 +369,7 @@ App.rounds = (() => {
         else drawPrickles(bx, by, 3, 5 * K);
       } else if (s.phase === 'punch') {
         const t = now - s.punchT0;
-        const pull = { x: s.from.x - 70 * K, y: s.from.y + 12 * K }, hitPt = { x: 560, y: CLOCK_C.y - 6 };
+        const pull = { x: s.from.x - 70 * K, y: s.from.y + 12 * K }, hitPt = { x: CLOCK_C.x - 90, y: CLOCK_C.y - 90 };   // the top corner: keeps the arm reaching, not folded
         const L = (a, b, k) => ({ x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k });
         let p, rot = 0, amp = 0;
         const WU = App.cfg.punchWindupMs, strike = App.config.ease('punchEase');

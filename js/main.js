@@ -45,8 +45,8 @@ App.seq = (() => {
     h.mode = 'open'; S.setAnchor('palm'); h.alpha = 1; h.fingers = 1;
     const cyc = (now % 2600) / 2600;
     const pat = cyc < .22 ? Math.sin(cyc / .22 * Math.PI) * 46 : 0;     // pats the air, never finds it
-    h.x = 700 + 150 * Math.sin(now * .0009);
-    h.y = 336 + 16 * Math.sin(now * .0021) + pat;
+    h.x = 676 + 70 * Math.sin(now * .0009);           // within arm's reach of the shoulder
+    h.y = 372 + 14 * Math.sin(now * .0021) + pat;
     h.rot = 8 * Math.sin(now * .0013);
   }
   function wake() {

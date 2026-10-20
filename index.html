@@ -10,7 +10,7 @@
     // Pages updates. Ask for the current version (never cached); if this copy is older,
     // reload under a fresh address so the new page and files load.
     (function () {
-      var PAGE_V = '20261020x';
+      var PAGE_V = '20261020y';
       try {
         fetch('version.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
           if (!j || !j.v || j.v === PAGE_V) return;
@@ -23,7 +23,7 @@
     })();
   </script>
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=20261020x">
+  <link rel="stylesheet" href="css/style.css?v=20261020y">
 </head>
 <body>
 
@@ -246,10 +246,10 @@
 
       <!-- nightstand -->
       <g id="nightstand" data-shade="">
-        <rect class="col-standTop" x="596" y="600" width="252" height="22" rx="4" fill="#9a9a9a" stroke="#222" stroke-width="3"/>
-        <rect class="col-standBody" x="610" y="620" width="224" height="124" fill="#8a8a8a" stroke="#222" stroke-width="3"/>
-        <rect class="col-drawer" x="632" y="642" width="180" height="40" rx="4" fill="#9c9c9c" stroke="#222" stroke-width="3"/>
-        <circle class="col-knob" cx="722" cy="662" r="6" fill="#d9d9d9" stroke="#222" stroke-width="3"/>
+        <rect class="col-standTop" x="596" y="584" width="252" height="22" rx="4" fill="#9a9a9a" stroke="#222" stroke-width="3"/>
+        <rect class="col-standBody" x="610" y="604" width="224" height="140" fill="#8a8a8a" stroke="#222" stroke-width="3"/>
+        <rect class="col-drawer" x="632" y="632" width="180" height="44" rx="4" fill="#9c9c9c" stroke="#222" stroke-width="3"/>
+        <circle class="col-knob" cx="722" cy="654" r="6" fill="#d9d9d9" stroke="#222" stroke-width="3"/>
         <rect class="col-legs" x="616" y="742" width="18" height="18" fill="#7a7a7a" stroke="#222" stroke-width="3"/>
         <rect class="col-legs" x="810" y="742" width="18" height="18" fill="#7a7a7a" stroke="#222" stroke-width="3"/>
       </g>
@@ -270,8 +270,10 @@
 
       <!-- the sleeper's arm and hand (hand + fist drawings from Throw the Clock) -->
       <g id="arm">
-        <!-- pajama sleeve from the shoulder to the wrist: a tapered shape along a soft curve through the elbow (js/scene.js) -->
-        <path id="armShape" class="col-sleeve" fill="#8c8c8c" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/>
+        <!-- pajama sleeve: a rigid upper arm and forearm hinged at the elbow (js/scene.js). The outline is drawn
+             as a wide stroke under the fill so the two segments join without a seam. -->
+        <path id="armLine" fill="none" stroke="#222" stroke-width="5" stroke-linejoin="round"/>
+        <path id="armShape" class="col-sleeve" fill="#8c8c8c"/>
         <path id="armHi" fill="none" stroke="#fff" stroke-opacity=".2" stroke-linecap="round" class="look3d"/>
         <path id="armCrease" fill="none" stroke="#6f6f6f" stroke-width="2.5" stroke-linecap="round"/>
       </g>
@@ -360,14 +362,14 @@
   </svg>
 </button>
 
-<script src="js/config.js?v=20261020x"></script>
-<script src="js/audio.js?v=20261020x"></script>
-<script src="js/scene.js?v=20261020x"></script>
-<script src="js/look.js?v=20261020x"></script>
-<script src="js/rounds.js?v=20261020x"></script>
-<script src="js/main.js?v=20261020x"></script>
-<script src="js/sky.js?v=20261020x"></script>
-<script src="js/versions.js?v=20261020x"></script>
-<script src="js/panel.js?v=20261020x"></script>
+<script src="js/config.js?v=20261020y"></script>
+<script src="js/audio.js?v=20261020y"></script>
+<script src="js/scene.js?v=20261020y"></script>
+<script src="js/look.js?v=20261020y"></script>
+<script src="js/rounds.js?v=20261020y"></script>
+<script src="js/main.js?v=20261020y"></script>
+<script src="js/sky.js?v=20261020y"></script>
+<script src="js/versions.js?v=20261020y"></script>
+<script src="js/panel.js?v=20261020y"></script>
 </body>
 </html>

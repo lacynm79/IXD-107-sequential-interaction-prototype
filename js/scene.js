@@ -7,7 +7,7 @@ App.scene = (() => {
   const $ = id => document.getElementById(id);
   const el = {};
   ['stage', 'shake', 'cam', 'clock', 'bellL', 'bellR', 'bar', 'lines', 'display', 'clockCracks', 'looseBell',
-   'arm', 'armShape', 'armCrease', 'hand', 'fingers', 'fist', 'blanket', 'blanketFold', 'hair', 'sleepFace', 'backHair', 'prickles', 'fx', 'roomLight', 'beam', 'blanketShade', 'armHi', 'bed', 'blanketG', 'bedContact',
+   'arm', 'armLine', 'armShape', 'armCrease', 'hand', 'fingers', 'fist', 'blanket', 'blanketFold', 'hair', 'sleepFace', 'backHair', 'prickles', 'fx', 'roomLight', 'beam', 'blanketShade', 'armHi', 'bed', 'blanketG', 'bedContact',
    'skyDawn', 'skyMidday', 'skySunset', 'skyNight', 'rooster', 'neighbor', 'cat', 'windowFx', 'wallCracks']
     .forEach(k => { el[k] = $(k); });
 
@@ -21,7 +21,8 @@ App.scene = (() => {
   const bedK = () => App.cfg.bedScale, bedDx = () => -150 * (App.cfg.bedScale - 1);
   const bedPt = (x, y) => ({ x: BED.x + bedDx() + (x - BED.x) * bedK(), y: BED.y + (y - BED.y) * bedK() });
   const SHOULDER = { x: 520, y: 612 };              // right shoulder, under the blanket (updated with the bed size)
-  const UPPER = 185, FORE = 175;                    // upper arm and forearm lengths (room px)
+  const UPPER = 120, FORE = 112;                    // upper arm and forearm lengths at bed size 1 (room px)
+  let elbowSide = -1;
   const WALL_EDGE = 1466;
   const FLOOR = 760;
   const U = 1.6;                                    // Throw the Clock's unit (clock width / 140)
@@ -102,45 +103,47 @@ App.scene = (() => {
     el.hand.setAttribute('opacity', show && open ? h.alpha.toFixed(2) : 0);
     el.fist.setAttribute('opacity', show && !open ? h.alpha.toFixed(2) : 0);
     el.fingers.setAttribute('transform', `translate(40 0) scale(${h.fingers.toFixed(3)} 1) translate(-40 0)`);
-    // arm: shoulder -> elbow -> wrist. Within reach the elbow bends (two-bone IK); beyond it the arm straightens and stretches. Drawn as one smooth curve.
+    // arm: a rigid upper arm and forearm hinged at the elbow (two-bone IK), so it moves like a limb.
+    // Out of reach, the shoulder leans in a little first; only then does the arm stretch.
     Object.assign(SHOULDER, bedPt(520, 612));
-    const cuff = handMatrix(h)(16, open ? 40 : 32), S0 = SHOULDER;
-    const dx = cuff.x - S0.x, dy = cuff.y - S0.y, d = Math.max(1, Math.hypot(dx, dy)), ux = dx / d, uy = dy / d;
-    let ex, ey;
-    if (d >= UPPER + FORE) { const f = UPPER / (UPPER + FORE); ex = S0.x + dx * f; ey = S0.y + dy * f; }
-    else {
-      const a = (UPPER * UPPER - FORE * FORE + d * d) / (2 * d), hgt = Math.sqrt(Math.max(0, UPPER * UPPER - a * a));
-      // the elbow arches up and outward (toward up-right); the side blends smoothly so it never pops across
-      const side = clamp((-uy * .2 - ux) * 4, -1, 1);
-      ex = S0.x + ux * a - uy * hgt * side; ey = S0.y + uy * a + ux * hgt * side;
-    }
+    const bk = bedK(), UP = UPPER * bk, FO = FORE * bk;
+    const cuff = handMatrix(h)(16, open ? 40 : 32);
+    let S0 = { x: SHOULDER.x, y: SHOULDER.y };
+    let dx = cuff.x - S0.x, dy = cuff.y - S0.y, d = Math.max(1, Math.hypot(dx, dy));
+    const lean = clamp(d - (UP + FO) * .98, 0, 60 * bk);
+    if (lean > 0) { S0 = { x: S0.x + dx / d * lean, y: S0.y + dy / d * lean }; dx = cuff.x - S0.x; dy = cuff.y - S0.y; d = Math.max(1, Math.hypot(dx, dy)); }
+    const ux = dx / d, uy = dy / d, st = Math.max(1, d / (UP + FO));    // stretch only past full reach
+    const L1 = UP * st, L2 = FO * st;
+    // the elbow bends up and outward; which side it takes only flips on a clear change, never mid-move
+    const pref = -uy * .2 - ux;
+    if (Math.abs(pref) > .25) elbowSide = pref > 0 ? 1 : -1;
+    const a = (L1 * L1 - L2 * L2 + d * d) / (2 * d), hgt = Math.sqrt(Math.max(0, L1 * L1 - a * a)) * elbowSide;
+    const ex = S0.x + ux * a - uy * hgt, ey = S0.y + uy * a + ux * hgt;
     const unit = (x, y) => { const l = Math.hypot(x, y) || 1; return [x / l, y / l]; };
     const [ax, ay] = unit(ex - S0.x, ey - S0.y), [fx, fy] = unit(cuff.x - ex, cuff.y - ey);
-    const sx = S0.x - ax * 24, sy = S0.y - ay * 24;                 // start a little behind the shoulder
-    const wx = cuff.x + fx * 12, wy = cuff.y + fy * 12;             // and end tucked into the cuff
-    // control point a touch past the elbow so the curve passes close to it: a soft, rounded bend
-    const kx = ex + (ex - (sx + wx) / 2) * .55, ky = ey + (ey - (sy + wy) / 2) * .55;
-    const path = `M${sx.toFixed(1)} ${sy.toFixed(1)} Q${kx.toFixed(1)} ${ky.toFixed(1)} ${wx.toFixed(1)} ${wy.toFixed(1)}`;
     const aw = App.cfg.armWidth;
-    // the sleeve outline: sample the curve and offset both sides; full at the shoulder, a slight
-    // fullness of fabric past the elbow, narrowing to the wrist
-    const N = 18, L = [], R = [];
-    for (let i = 0; i <= N; i++) {
-      const t = i / N, mt = 1 - t;
-      const x = mt * mt * sx + 2 * mt * t * kx + t * t * wx, y = mt * mt * sy + 2 * mt * t * ky + t * t * wy;
-      const [tx, ty] = unit(2 * mt * (kx - sx) + 2 * t * (wx - kx), 2 * mt * (ky - sy) + 2 * t * (wy - ky));
-      const half = aw * (1.04 - .36 * t + .07 * Math.sin(Math.PI * Math.min(1, t * 1.6))) / 2;
-      L.push(`${(x - ty * half).toFixed(1)} ${(y + tx * half).toFixed(1)}`);
-      R.push(`${(x + ty * half).toFixed(1)} ${(y - tx * half).toFixed(1)}`);
-    }
-    el.armShape.setAttribute('d', `M${L.join(' L')} L${R.reverse().join(' L')} Z`);
-    // a soft highlight along the upper-left side of the sleeve
-    el.armHi.setAttribute('d', path); el.armHi.setAttribute('stroke-width', (aw * .22).toFixed(1));
-    el.armHi.setAttribute('transform', `translate(${(-aw * .13).toFixed(1)} ${(-aw * .13).toFixed(1)})`);
+    // segment outlines, all wound the same way so overlaps fill as one shape
+    const seg = (x0, y0, x1, y1, w0, w1, back) => {
+      const [tx, ty] = unit(x1 - x0, y1 - y0), bx = x0 - tx * back, by = y0 - ty * back;
+      return `M${(bx - ty * w0).toFixed(1)} ${(by + tx * w0).toFixed(1)} L${(x1 - ty * w1).toFixed(1)} ${(y1 + tx * w1).toFixed(1)} ` +
+        `L${(x1 + ty * w1).toFixed(1)} ${(y1 - tx * w1).toFixed(1)} L${(bx + ty * w0).toFixed(1)} ${(by - tx * w0).toFixed(1)} Z`;
+    };
+    const ring = (cx, cy, r) => {   // round elbow, same winding as the segments
+      let p = '';
+      for (let i = 0; i < 16; i++) { const t = -i / 16 * Math.PI * 2; p += `${i ? 'L' : 'M'}${(cx + Math.cos(t) * r).toFixed(1)} ${(cy + Math.sin(t) * r).toFixed(1)} `; }
+      return p + 'Z';
+    };
+    const wS = aw * .52, wE = aw * .44, wW = aw * .36;
+    const dArm = seg(S0.x, S0.y, ex, ey, wS, wE, 28 * bk) + ' ' + seg(ex, ey, cuff.x + fx * 12, cuff.y + fy * 12, wE * 1.02, wW, 0) + ' ' + ring(ex, ey, wE);
+    el.armLine.setAttribute('d', dArm); el.armShape.setAttribute('d', dArm);
+    // a soft highlight along the upper-left side of each segment
+    el.armHi.setAttribute('d', `M${S0.x.toFixed(1)} ${S0.y.toFixed(1)} L${ex.toFixed(1)} ${ey.toFixed(1)} L${cuff.x.toFixed(1)} ${cuff.y.toFixed(1)}`);
+    el.armHi.setAttribute('stroke-width', (aw * .18).toFixed(1)); el.armHi.setAttribute('stroke-linejoin', 'round');
+    el.armHi.setAttribute('transform', `translate(${(-aw * .12).toFixed(1)} ${(-aw * .12).toFixed(1)})`);
     // sleeve folds: one across the forearm near the cuff, one in the crook of the elbow when it bends
     const px = -fy, py = fx, cx = cuff.x - fx * 46, cy = cuff.y - fy * 46, r = aw * .32;
     let folds = `M${(cx + px * r).toFixed(1)} ${(cy + py * r).toFixed(1)} q${(-fx * 7 - px * r).toFixed(1)} ${(-fy * 7 - py * r).toFixed(1)} ${(-px * 2 * r).toFixed(1)} ${(-py * 2 * r).toFixed(1)}`;
-    if (d < (UPPER + FORE) * .95) {
+    if (st <= 1 && d < (UP + FO) * .95) {
       const [bx, by] = unit(-(ax + fx) || 0, -(ay + fy) || 0);          // inner side of the elbow
       const mx = ex + bx * aw * .18, my = ey + by * aw * .18;
       folds += ` M${(mx - ax * aw * .3).toFixed(1)} ${(my - ay * aw * .3).toFixed(1)} Q${(mx + bx * 6).toFixed(1)} ${(my + by * 6).toFixed(1)} ${(mx + fx * aw * .3).toFixed(1)} ${(my + fy * aw * .3).toFixed(1)}`;
