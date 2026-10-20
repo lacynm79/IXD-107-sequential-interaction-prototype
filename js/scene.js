@@ -90,14 +90,36 @@ App.scene = (() => {
   }
 
   /* ---------- hand and arm ---------- */
-  function handMatrix(h) {
-    const a = h.rot * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a);
+  function handMatrix(h, rot = h.rot) {
+    const a = rot * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a);
     const F = App.cfg.handScale;
     return (u, v) => { const dx = (u - h.ax) * F, dy = (v - h.ay) * F; return { x: h.x + dx * ca - dy * sa, y: h.y + dx * sa + dy * ca }; };
   }
+  // where the elbow sits for a given wrist position (same IK as the arm drawing, without side effects)
+  function forearmAngle(cuff) {
+    const bk = bedK(), UP = UPPER * bk, FO = FORE * bk;
+    let dx = cuff.x - SHOULDER.x, dy = cuff.y - SHOULDER.y, d = Math.max(1, Math.hypot(dx, dy));
+    const lean = clamp(d - (UP + FO) * .98, 0, 60 * bk), sx = SHOULDER.x + dx / d * lean, sy = SHOULDER.y + dy / d * lean;
+    dx = cuff.x - sx; dy = cuff.y - sy; d = Math.max(1, Math.hypot(dx, dy));
+    const ux = dx / d, uy = dy / d, st = Math.max(1, d / (UP + FO)), L1 = UP * st, L2 = FO * st;
+    const pref = -uy * .2 - ux, side = Math.abs(pref) > .25 ? (pref > 0 ? 1 : -1) : elbowSide;
+    const a = (L1 * L1 - L2 * L2 + d * d) / (2 * d), hgt = Math.sqrt(Math.max(0, L1 * L1 - a * a)) * side;
+    const ex = sx + ux * a - uy * hgt, ey = sy + uy * a + ux * hgt;
+    return Math.atan2(cuff.y - ey, cuff.x - ex) * 180 / Math.PI;
+  }
+  const wrap = a => ((a + 540) % 360) - 180;
   function drawHand() {
     const h = W.hand, open = h.mode === 'open', show = h.mode !== 'hidden', F = App.cfg.handScale;
-    const tf = `translate(${h.x.toFixed(1)} ${h.y.toFixed(1)}) rotate(${h.rot.toFixed(2)}) scale(${F}) translate(${-h.ax} ${-h.ay})`;
+    Object.assign(SHOULDER, bedPt(442, 580));   // the top shoulder, just beside the head
+    // the hand carries on from the forearm, with the wrist bending toward the pose the step asks for
+    // (h.rot: palm flat for a slap, knuckles leading for a punch). The palm stays where the step puts it.
+    let rot = h.rot;
+    for (let i = 0; i < 3; i++) {
+      const fa = forearmAngle(handMatrix(h, rot)(16, open ? 40 : 32));
+      rot = fa + clamp(wrap(h.rot - fa) * .45, -40, 40);
+    }
+    h.drawRot = rot;
+    const tf = `translate(${h.x.toFixed(1)} ${h.y.toFixed(1)}) rotate(${rot.toFixed(2)}) scale(${F}) translate(${-h.ax} ${-h.ay})`;
     el.hand.setAttribute('transform', tf);
     el.fist.setAttribute('transform', tf);
     el.hand.setAttribute('opacity', show && open ? h.alpha.toFixed(2) : 0);
@@ -105,9 +127,8 @@ App.scene = (() => {
     el.fingers.setAttribute('transform', `translate(40 0) scale(${h.fingers.toFixed(3)} 1) translate(-40 0)`);
     // arm: a rigid upper arm and forearm hinged at the elbow (two-bone IK), so it moves like a limb.
     // Out of reach, the shoulder leans in a little first; only then does the arm stretch.
-    Object.assign(SHOULDER, bedPt(442, 580));   // the top shoulder, just beside the head
     const bk = bedK(), UP = UPPER * bk, FO = FORE * bk;
-    const cuff = handMatrix(h)(16, open ? 40 : 32);
+    const cuff = handMatrix(h, rot)(16, open ? 40 : 32);
     let S0 = { x: SHOULDER.x, y: SHOULDER.y };
     let dx = cuff.x - S0.x, dy = cuff.y - S0.y, d = Math.max(1, Math.hypot(dx, dy));
     const lean = clamp(d - (UP + FO) * .98, 0, 60 * bk);
