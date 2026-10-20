@@ -94,8 +94,8 @@ window.App = window.App || {};
     ]],
   ];
 
-  // Color panel: one entry per recolorable part. The rooster, neighbor, window frame, skies and
-  // ring lines are bitmaps from the studies and keep their own colors.
+  // Color panel: one entry per recolorable part. The window frame, study sky artwork and ring
+  // lines are bitmaps from the studies and keep their own colors.
   const COLOR_SCHEMA = [
     ['Room', [
       ['colWall', 'Back wall', 'color'],
@@ -136,6 +136,18 @@ window.App = window.App || {};
       ['colSnooze', 'Snooze bar', 'color'],
     ]],
     ['Window cast', [
+      ['colRoosterBody', 'Rooster body', 'color'],
+      ['colRoosterComb', 'Rooster comb', 'color'],
+      ['colRoosterWattle', 'Rooster wattle', 'color'],
+      ['colRoosterBeak', 'Rooster beak', 'color'],
+      ['colRoosterEye', 'Rooster eye', 'color'],
+      ['colRoosterPupil', 'Rooster pupil', 'color'],
+      ['colNbSkin', 'Neighbor face and hands', 'color'],
+      ['colNbHair', 'Neighbor hair', 'color'],
+      ['colNbShirt', 'Neighbor shirt', 'color'],
+      ['colNbEyes', 'Neighbor eyes', 'color'],
+      ['colNbPupils', 'Neighbor pupils', 'color'],
+      ['colNbMouth', 'Neighbor mouth', 'color'],
       ['colCat', 'Cat', 'color'],
       ['colCatRim', 'Cat outline glow', 'color'],
     ]],
@@ -254,6 +266,8 @@ window.App = window.App || {};
     colHair: '#2b2b2b', colSleeve: '#38778c', colSkin: '#d6a76a', colCuff: '#a2b3b9',
     colStandTop: '#b03030', colStandBody: '#bd4c4c', colDrawer: '#835d5d', colKnob: '#2c2a2a',
     colClockBody: '#db0c33', colClockFeet: '#041501', colScreen: '#2b2b2b', colDigits: '#4fff37', colBell: '#dcb369', colSnooze: '#e2e2e2',
+    colRoosterBody: '#f2f2f2', colRoosterComb: '#5e5e5e', colRoosterWattle: '#5e5e5e', colRoosterBeak: '#b4b4b4', colRoosterEye: '#ffffff', colRoosterPupil: '#222222',
+    colNbSkin: '#d0d0d0', colNbHair: '#3c3c3c', colNbShirt: '#8e8e8e', colNbEyes: '#ffffff', colNbPupils: '#222222', colNbMouth: '#4a4a4a',
     colCat: '#111111', colCatRim: '#d9d9d9',
     colBulbGlass: '#e1e0c8', colBulbGlow: '#f5f25c', colSocket: '#7a7a7a', colBulbLine: '#222222', colChain: '#555555',
     colResetTag: '#cfa35c', colFirefly: '#2b2b2b', colFireflyTail: '#e8e8e8', colWings: '#555555', colBlackout: '#0b0b0b',

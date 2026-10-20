@@ -477,7 +477,7 @@
       id: 'colorPanel', title: 'Colors', label: 'Color controls',
       schema: C.COLOR_SCHEMA, copyTitle: 'Five More Minutes: color settings', storageKey: 'fmm-color-panel-open',
       custom: colorPicker,
-      note: 'Pick an item, then drag in the color square and the rainbow strip. The stage updates as you go. The rooster, neighbor, window frame, skies and ring lines are drawings from the studies and keep their own colors.',
+      note: 'Pick an item, then drag in the color square and the rainbow strip. The stage updates as you go. The window frame, the original sky artwork and the ring lines are bitmaps from the studies and keep their own colors.',
     });
   }
   if (C.showWindowPanel) {

@@ -6,8 +6,8 @@ These drawings were extracted from the data URIs embedded in the interaction stu
 | --- | --- |
 | `img/sky-dawn.png` | Sticky Snooze Bar (dawn sky) |
 | `img/sky-midday.png` | Sticky Snooze Bar (midday sky) |
-| `img/rooster.png` | Sticky Snooze Bar |
-| `img/neighbor.png` | Slap the Alarm Quiet |
+| `img/rooster.png` | Sticky Snooze Bar (kept for reference; the page draws a traced vector copy so each part can be recolored) |
+| `img/neighbor.png` | Slap the Alarm Quiet (kept for reference; the page draws a traced vector copy so each part can be recolored) |
 | `img/window-frame.png` | Slap the Alarm Quiet |
 | `img/ring-lines.png` | Slap the Alarm Quiet |
 | `img/sky-sunset.svg` | Slap the Alarm Quiet |
