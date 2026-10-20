@@ -25,6 +25,8 @@ App.versions = (() => {
     });
   }
   const differs = v => Object.keys(C.DEFAULTS).some(k => v[k] !== C.DEFAULTS[k]);
+  // the auto-saved state keeps only what you changed, so new saved defaults still come through
+  const edits = () => { const v = {}; Object.keys(C.DEFAULTS).forEach(k => { if (cfg[k] !== C.DEFAULTS[k]) v[k] = cfg[k]; }); return v; };
 
   function add(name, kind) {
     list.unshift({ id: Date.now() + '-' + Math.random().toString(36).slice(2, 6), name, kind, t: Date.now(), values: snapshot() });
@@ -35,8 +37,9 @@ App.versions = (() => {
   }
 
   // on load: bring back the last edits if auto-save is on
-  // (also on GitHub Pages, where the panels are hidden: your own browser keeps showing your edits there)
-  if (auto) { const cur = get(K_CUR, null); if (cur) apply(cur); }
+  // Not on GitHub Pages: that site always shows the saved defaults (the same for every visitor),
+  // so an old auto-save in this browser can't hide newer defaults there.
+  if (auto && C.tools) { const cur = get(K_CUR, null); if (cur) apply(cur); }
 
   // while editing: keep the current state, and take an automatic snapshot at most once a minute
   let saveT = null, lastAuto = 0, applying = false;
@@ -44,7 +47,7 @@ App.versions = (() => {
     if (!auto || applying || !C.tools) return;          // only the panels make edits
     clearTimeout(saveT);
     saveT = setTimeout(() => {
-      put(K_CUR, snapshot());
+      put(K_CUR, edits());
       if (Date.now() - lastAuto > AUTO_EVERY && differs(cfg)) { lastAuto = Date.now(); add('Auto-save', 'auto'); }
     }, 600);
   });
@@ -54,17 +57,17 @@ App.versions = (() => {
     get auto() { return auto; },
     setAuto(on) {
       auto = !!on; put(K_AUTO, auto);
-      if (auto) put(K_CUR, snapshot()); else { try { localStorage.removeItem(K_CUR); } catch (_) { /* unavailable */ } }
+      if (auto) put(K_CUR, edits()); else { try { localStorage.removeItem(K_CUR); } catch (_) { /* unavailable */ } }
       changed();
     },
     list: () => list.slice(),
-    save(name) { add(name || 'Saved version', 'manual'); if (auto) put(K_CUR, snapshot()); },
+    save(name) { add(name || 'Saved version', 'manual'); if (auto) put(K_CUR, edits()); },
     // restore a version; the current state is kept as a snapshot first so this can be undone
     restore(id, refresh) {
       const v = list.find(x => x.id === id); if (!v) return;
       add('Before restoring “' + v.name + '”', 'auto');
       applying = true; apply(v.values); applying = false;
-      if (auto) put(K_CUR, snapshot());
+      if (auto) put(K_CUR, edits());
       if (refresh) refresh();
     },
     beforeReset(label) { add('Before ' + label, 'auto'); },
