@@ -122,8 +122,12 @@ App.scene = (() => {
     const tf = `translate(${h.x.toFixed(1)} ${h.y.toFixed(1)}) rotate(${rot.toFixed(2)}) scale(${F}) translate(${-h.ax} ${-h.ay})`;
     el.hand.setAttribute('transform', tf);
     el.fist.setAttribute('transform', tf);
-    el.hand.setAttribute('opacity', show && open ? h.alpha.toFixed(2) : 0);
-    el.fist.setAttribute('opacity', show && !open ? h.alpha.toFixed(2) : 0);
+    // between scenes the hand goes back under the covers (main.js REST): as it nears that spot the
+    // whole arm slips out of sight, and it reappears as the hand comes back out
+    const rp = bedPt(470, 680), tuck = clamp((Math.hypot(h.x - rp.x, h.y - rp.y) - 50 * bedK()) / (130 * bedK()), 0, 1);
+    const op = (h.alpha * tuck).toFixed(2);
+    el.hand.setAttribute('opacity', show && open ? op : 0);
+    el.fist.setAttribute('opacity', show && !open ? op : 0);
     el.fingers.setAttribute('transform', `translate(40 0) scale(${h.fingers.toFixed(3)} 1) translate(-40 0)`);
     // arm: a rigid upper arm and forearm hinged at the elbow (two-bone IK), so it moves like a limb.
     // Out of reach, the shoulder leans in a little first; only then does the arm stretch.
@@ -170,7 +174,7 @@ App.scene = (() => {
       folds += ` M${(mx - ax * aw * .3).toFixed(1)} ${(my - ay * aw * .3).toFixed(1)} Q${(mx + bx * 6).toFixed(1)} ${(my + by * 6).toFixed(1)} ${(mx + fx * aw * .3).toFixed(1)} ${(my + fy * aw * .3).toFixed(1)}`;
     }
     el.armCrease.setAttribute('d', folds);
-    el.arm.setAttribute('opacity', show ? h.alpha.toFixed(2) : 0);
+    el.arm.setAttribute('opacity', show ? op : 0);
   }
   // anchor presets in the drawings' own units
   const ANCHOR = { palm: [70, 63], fistGrip: [60, 56], fistCenter: [48, 32] };
