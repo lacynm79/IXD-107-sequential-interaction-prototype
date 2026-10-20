@@ -15,8 +15,7 @@ App.scene = (() => {
   const M = reduce ? 0.35 : 1;                      // motion scale for shakes and jitters
   const CS = 0.8;                                   // clock scale in the room
   const HOME = { x: 720, y: 600 };                  // clock pivot on the nightstand
-  const F = 1.3;                                    // hand/fist drawing scale
-  const SHOULDER = { x: 470, y: 640 };              // under the blanket
+  const SHOULDER = { x: 520, y: 612 };              // right shoulder, under the blanket
   const WALL_EDGE = 1466;
   const FLOOR = 760;
   const U = 1.6;                                    // Throw the Clock's unit (clock width / 140)
@@ -86,10 +85,11 @@ App.scene = (() => {
   /* ---------- hand and arm ---------- */
   function handMatrix(h) {
     const a = h.rot * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a);
+    const F = App.cfg.handScale;
     return (u, v) => { const dx = (u - h.ax) * F, dy = (v - h.ay) * F; return { x: h.x + dx * ca - dy * sa, y: h.y + dx * sa + dy * ca }; };
   }
   function drawHand() {
-    const h = W.hand, open = h.mode === 'open', show = h.mode !== 'hidden';
+    const h = W.hand, open = h.mode === 'open', show = h.mode !== 'hidden', F = App.cfg.handScale;
     const tf = `translate(${h.x.toFixed(1)} ${h.y.toFixed(1)}) rotate(${h.rot.toFixed(2)}) scale(${F}) translate(${-h.ax} ${-h.ay})`;
     el.hand.setAttribute('transform', tf);
     el.fist.setAttribute('transform', tf);
@@ -100,9 +100,11 @@ App.scene = (() => {
     const cuff = handMatrix(h)(16, open ? 40 : 32);
     const dx = SHOULDER.x - cuff.x, dy = SHOULDER.y - cuff.y, len = Math.hypot(dx, dy), ang = Math.atan2(dy, dx) * 180 / Math.PI;
     el.arm.setAttribute('transform', `translate(${cuff.x.toFixed(1)} ${cuff.y.toFixed(1)}) rotate(${ang.toFixed(2)})`);
+    const aw = App.cfg.armWidth, cr = aw * .34;
     el.armRect.setAttribute('x', -12); el.armRect.setAttribute('width', (len + 40).toFixed(1));
+    el.armRect.setAttribute('y', -aw / 2); el.armRect.setAttribute('height', aw); el.armRect.setAttribute('rx', aw / 2);
     const c1 = (len * .32).toFixed(1), c2 = (len * .52).toFixed(1);
-    el.armCrease.setAttribute('d', `M${c1} -17 q8 17 0 34 M${c2} -17 q8 17 0 34`);
+    el.armCrease.setAttribute('d', `M${c1} ${-cr} q8 ${cr} 0 ${2 * cr} M${c2} ${-cr} q8 ${cr} 0 ${2 * cr}`);
     el.arm.setAttribute('opacity', show ? h.alpha.toFixed(2) : 0);
   }
   // anchor presets in the drawings' own units
@@ -111,17 +113,17 @@ App.scene = (() => {
 
   /* ---------- blanket and sleeper ---------- */
   function drawBlanket() {
-    const b = W.blanket;
-    const lx = lerp(b.lumpX, 392, b.roll), h = lerp(b.h, 70, b.roll) * (1 + b.breath * .05) + b.jerk * 22;
-    const pk = 562 - h;
-    const d = `M336 572 C348 ${552 - b.jerk * 6} ${(lx - 96).toFixed(1)} ${pk.toFixed(1)} ${lx.toFixed(1)} ${pk.toFixed(1)} ` +
-      `C${(lx + 96).toFixed(1)} ${pk.toFixed(1)} ${(560 - b.roll * 30).toFixed(1)} ${568 - b.roll * 12} 606 582 L616 712 Q470 730 330 712 Z`;
+    // the bed is seen end-on: the blanket is pulled up to the chin, with the shoulders as two bumps
+    const b = W.blanket, k = ease(clamp(b.roll, 0, 1));
+    const up = b.jerk * 10, br = b.breath * 3;
+    const L = 588 - up - br + 8 * k, R = 588 - up - br - 10 * k;   // rolling over: one shoulder comes up
+    const d = `M256 704 L258 648 C258 ${(612 - br).toFixed(1)} 276 ${L.toFixed(1)} 318 ${L.toFixed(1)} ` +
+      `Q352 ${(582 - up).toFixed(1)} 384 ${(584 - up).toFixed(1)} L446 ${(584 - up).toFixed(1)} Q478 ${(582 - up).toFixed(1)} 512 ${R.toFixed(1)} ` +
+      `C554 ${R.toFixed(1)} 572 ${(612 - br).toFixed(1)} 572 648 L574 704 Q415 718 256 704 Z`;
     el.blanket.setAttribute('d', d);
-    el.blanketFold.setAttribute('d', `M344 ${578 - b.jerk * 4} q${40 + b.roll * 10} -${12 + b.roll * 6} ${84 + b.roll * 20} -6`);
-    // rolling over: the head turns on the pillow
-    const k = ease(clamp(b.roll, 0, 1));
-    el.hair.setAttribute('transform', `translate(0 ${(-b.jerk * 8).toFixed(1)}) translate(300 540) scale(${(1 - 2 * k).toFixed(3)} 1) translate(-300 -540)`);
-    // after rolling over they face away: only the back of the head shows
+    el.blanketFold.setAttribute('d', `M300 ${(600 - up).toFixed(1)} Q415 ${(608 - up).toFixed(1)} 530 ${(600 - up).toFixed(1)}`);
+    // rolling over: they turn to face the headboard, so the face gives way to the back of the head
+    el.hair.setAttribute('transform', `translate(0 ${(-b.jerk * 8).toFixed(1)})`);
     el.sleepFace.setAttribute('opacity', (1 - k).toFixed(3));
     el.backHair.setAttribute('opacity', k.toFixed(3));
   }
@@ -249,7 +251,7 @@ App.scene = (() => {
     W.texts.push({ el: t, x, y, t0: performance.now(), dur: o.dur || 900, rise: o.rise ?? 30, drift: o.drift || 0, rot: o.rot || 0, pop: o.pop ?? .35, wave: o.wave || 0 });
   }
   function spawnZ(big) {
-    spawnText(big ? 'Z' : 'z', 318 + rnd(-6, 6), 520, { size: big ? 34 : rnd(20, 28), fill: '#555', dur: 2600, rise: 120, drift: 70, rot: rnd(-12, 8), pop: .15, wave: 8, italic: true });
+    spawnText(big ? 'Z' : 'z', 452 + rnd(-6, 6), 510, { size: big ? 34 : rnd(20, 28), fill: '#555', dur: 2600, rise: 120, drift: 70, rot: rnd(-12, 8), pop: .15, wave: 8, italic: true });
   }
   function drawTexts(now) {
     W.texts = W.texts.filter(o => {
@@ -286,7 +288,7 @@ App.scene = (() => {
   }
 
   resetState();
-  return { el, W, CS, HOME, F, U, SHOULDER, WALL_EDGE, FLOOR, M, reduce,
+  return { el, W, CS, HOME, U, SHOULDER, WALL_EDGE, FLOOR, M, reduce,
     clamp, lerp, ease, easeOut, easeOutBack, approach, rnd, wob,
     resetState, ringLook, setAnchor, handMatrix, barTop, pivotToCenter, moveCam, toWorld, worldPerPx,
     spawnText, spawnZ, addCrack, draw };

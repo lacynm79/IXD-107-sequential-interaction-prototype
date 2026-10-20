@@ -10,7 +10,7 @@
     // Pages updates. Ask for the current version (never cached); if this copy is older,
     // reload under a fresh address so the new page and files load.
     (function () {
-      var PAGE_V = '20261020s';
+      var PAGE_V = '20261020t';
       try {
         fetch('version.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
           if (!j || !j.v || j.v === PAGE_V) return;
@@ -23,7 +23,7 @@
     })();
   </script>
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=20261020s">
+  <link rel="stylesheet" href="css/style.css?v=20261020t">
 </head>
 <body>
 
@@ -144,29 +144,27 @@
         <g id="wallCracks"></g>
       </g>
 
-      <!-- bed: headboard, frame, pillow, hair -->
+      <!-- bed, seen end-on: headboard at the back, the sleeper's head on the pillow facing us,
+           the mattress running toward the viewer (the blanket is drawn later, in front of the arm) -->
       <g id="bed">
-        <rect class="col-headboard" x="96" y="420" width="44" height="345" rx="10" fill="#8c8c8c" stroke="#222" stroke-width="3"/>
-        <rect class="col-bedBase" x="128" y="592" width="486" height="112" rx="10" fill="#9c9c9c" stroke="#222" stroke-width="3"/>
-        <rect class="col-legs" x="140" y="700" width="22" height="60" fill="#7a7a7a" stroke="#222" stroke-width="3"/>
-        <rect class="col-legs" x="576" y="700" width="22" height="60" fill="#7a7a7a" stroke="#222" stroke-width="3"/>
-        <rect class="col-sheet" x="128" y="572" width="490" height="36" rx="12" fill="#e2e2e2" stroke="#222" stroke-width="3"/>
-        <path class="col-pillow" d="M172 560 C168 520 222 514 268 516 C320 518 344 528 340 560 C336 586 300 590 256 588 C206 586 176 584 172 560 Z" fill="#f2f2f2" stroke="#222" stroke-width="3"/>
-        <!-- the sleeper's head on the pillow: lying on their side, crown toward the headboard -->
-        <!-- neck and shoulder, running from the head into the body under the blanket -->
-        <path class="col-sleeve" d="M314 580 C312 558 334 546 362 548 L364 582 Z" fill="#bdbdbd" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
-        <path class="col-skin" d="M304 556 L324 546 L338 562 L318 572 Z" fill="#d0d0d0" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
+        <rect class="col-headboard" x="282" y="418" width="266" height="226" rx="18" fill="#8c8c8c" stroke="#222" stroke-width="3"/>
+        <path class="col-sheet" d="M298 584 L532 584 L574 652 L256 652 Z" fill="#e2e2e2" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
+        <rect class="col-bedBase" x="250" y="648" width="330" height="62" rx="8" fill="#9c9c9c" stroke="#222" stroke-width="3"/>
+        <rect class="col-legs" x="262" y="706" width="22" height="54" fill="#7a7a7a" stroke="#222" stroke-width="3"/>
+        <rect class="col-legs" x="546" y="706" width="22" height="54" fill="#7a7a7a" stroke="#222" stroke-width="3"/>
+        <path class="col-pillow" d="M322 566 C318 536 360 532 415 532 C470 532 512 536 508 566 C506 594 470 598 415 598 C360 598 324 594 322 566 Z" fill="#f2f2f2" stroke="#222" stroke-width="3"/>
+        <!-- the sleeper's head, facing us; after rolling over only the back of the head shows -->
         <g id="hair">
-          <circle class="col-skin" cx="300" cy="540" r="30" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
+          <circle class="col-skin" cx="380" cy="552" r="8" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
+          <circle class="col-skin" cx="450" cy="552" r="8" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
+          <circle class="col-skin" cx="415" cy="548" r="35" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
           <g id="sleepFace">
-            <path d="M311 528 q6 5 12 0" fill="none" stroke="#222" stroke-width="3" stroke-linecap="round"/>
-            <path class="col-skin" d="M325 516 q10 0 7 11" fill="#d0d0d0" stroke="#222" stroke-width="3" stroke-linecap="round"/>
-            <ellipse class="col-skin" cx="295" cy="551" rx="5" ry="7" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-            <path d="M296 548 q-2 3 0 6" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round"/>
+            <path d="M394 556 q6 5 12 0 M424 556 q6 5 12 0" fill="none" stroke="#222" stroke-width="3" stroke-linecap="round"/>
+            <ellipse cx="415" cy="570" rx="4" ry="3" fill="#222"/>
           </g>
-          <path class="col-hair" d="M318 513 C300 502 272 508 268 532 C265 550 272 561 286 566 L290 560 L286 552 L294 548 L290 538 L298 535 L296 524 L306 524 L308 515 Z" fill="#2b2b2b" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
-          <circle id="backHair" class="col-hair" cx="300" cy="540" r="31" fill="#2b2b2b" stroke="#222" stroke-width="3" opacity="0"/>
-          <path d="M270 524 q-10 -4 -12 -12 M282 511 q-4 -9 2 -15 M296 507 q4 -9 12 -9" fill="none" stroke="#222" stroke-width="3" stroke-linecap="round"/>
+          <path class="col-hair" d="M381 550 C376 516 396 506 415 506 C436 506 455 516 449 550 L443 534 L436 543 L430 528 L421 539 L414 525 L406 539 L398 528 L392 543 L386 534 Z" fill="#2b2b2b" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
+          <circle id="backHair" class="col-hair" cx="415" cy="548" r="36" fill="#2b2b2b" stroke="#222" stroke-width="3" opacity="0"/>
+          <path d="M404 508 q-5 -12 3 -17 M418 506 q2 -12 13 -13 M392 512 q-11 -4 -13 -13" fill="none" stroke="#222" stroke-width="3" stroke-linecap="round"/>
         </g>
       </g>
 
@@ -274,13 +272,13 @@
   </svg>
 </button>
 
-<script src="js/config.js?v=20261020s"></script>
-<script src="js/audio.js?v=20261020s"></script>
-<script src="js/scene.js?v=20261020s"></script>
-<script src="js/rounds.js?v=20261020s"></script>
-<script src="js/main.js?v=20261020s"></script>
-<script src="js/sky.js?v=20261020s"></script>
-<script src="js/versions.js?v=20261020s"></script>
-<script src="js/panel.js?v=20261020s"></script>
+<script src="js/config.js?v=20261020t"></script>
+<script src="js/audio.js?v=20261020t"></script>
+<script src="js/scene.js?v=20261020t"></script>
+<script src="js/rounds.js?v=20261020t"></script>
+<script src="js/main.js?v=20261020t"></script>
+<script src="js/sky.js?v=20261020t"></script>
+<script src="js/versions.js?v=20261020t"></script>
+<script src="js/panel.js?v=20261020t"></script>
 </body>
 </html>
