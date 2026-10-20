@@ -20,6 +20,12 @@
   const fmtVal = (v, step) => Number(v).toFixed(decimals(step));
   const dock = h('div', { id: 'dock' });
   document.body.append(dock);
+  // the window grows with the screen like the room and the bulb do (fixed pixels look tiny on a big monitor)
+  function uiScale() {
+    const s = Math.max(1, Math.min(1.7, innerHeight / 760, (innerWidth - 24) / 290));
+    document.documentElement.style.setProperty('--ui', s.toFixed(3));
+  }
+  addEventListener('resize', uiScale); uiScale();
 
   /* ---------- the Tools window: one collapsible window with a tab per panel ---------- */
   const tools = h('aside', { id: 'tools', class: 'tpanel', 'aria-label': 'Modify the prototype' });

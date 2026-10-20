@@ -88,7 +88,7 @@ body {
   left: calc(max(12px, env(safe-area-inset-left, 0px)) + var(--bulbH) * var(--bulbS, 1) * 120 / 230 + 8px);
   top: 12px;
   z-index: 4;
-  width: min(290px, calc(100vw - 24px));
+  width: min(calc(290px * var(--ui, 1)), calc(100vw - 24px));
   max-height: calc(100dvh - 24px);
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -116,6 +116,8 @@ body {
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
 }
+/* scaled as a whole with the screen (--ui is set in js/panel.js) */
+#tools { width: 290px; zoom: var(--ui, 1); }
 .tpanel.closed { width: auto; }
 .tpanel.closed .panelBody { display: none; }
 .panelToggle {
