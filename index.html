@@ -10,7 +10,7 @@
     // Pages updates. Ask for the current version (never cached); if this copy is older,
     // reload under a fresh address so the new page and files load.
     (function () {
-      var PAGE_V = '20261020m';
+      var PAGE_V = '20261020n';
       try {
         fetch('version.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
           if (!j || !j.v || j.v === PAGE_V) return;
@@ -23,7 +23,7 @@
     })();
   </script>
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=20261020m">
+  <link rel="stylesheet" href="css/style.css?v=20261020n">
 </head>
 <body>
 
@@ -247,7 +247,7 @@
           <circle class="col-resetTag" cx="72" cy="187" r="11" fill="#fff" stroke="#222" stroke-width="2"/>
           <!-- reset arrow: the common "rotate" icon (open circle + chevron), centred inside the tag's rim -->
           <g id="resetArrow" transform="translate(66.3 181.3) scale(0.475)" fill="none" stroke="#222" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20.5 15 A9 9 0 1 1 18.4 5.6 L23 10"/>
+            <path d="M18.9 17.8 A9 9 0 1 1 18.4 5.6 L23 10"/>
             <path d="M23 4 L23 10 L17 10"/>
           </g>
         </g>
@@ -262,13 +262,13 @@
   </svg>
 </button>
 
-<script src="js/config.js?v=20261020m"></script>
-<script src="js/audio.js?v=20261020m"></script>
-<script src="js/scene.js?v=20261020m"></script>
-<script src="js/rounds.js?v=20261020m"></script>
-<script src="js/main.js?v=20261020m"></script>
-<script src="js/sky.js?v=20261020m"></script>
-<script src="js/versions.js?v=20261020m"></script>
-<script src="js/panel.js?v=20261020m"></script>
+<script src="js/config.js?v=20261020n"></script>
+<script src="js/audio.js?v=20261020n"></script>
+<script src="js/scene.js?v=20261020n"></script>
+<script src="js/rounds.js?v=20261020n"></script>
+<script src="js/main.js?v=20261020n"></script>
+<script src="js/sky.js?v=20261020n"></script>
+<script src="js/versions.js?v=20261020n"></script>
+<script src="js/panel.js?v=20261020n"></script>
 </body>
 </html>
