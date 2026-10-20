@@ -10,7 +10,7 @@
     // Pages updates. Ask for the current version (never cached); if this copy is older,
     // reload under a fresh address so the new page and files load.
     (function () {
-      var PAGE_V = '20261021c';
+      var PAGE_V = '20261021d';
       try {
         fetch('version.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
           if (!j || !j.v || j.v === PAGE_V) return;
@@ -23,7 +23,7 @@
     })();
   </script>
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=20261021c">
+  <link rel="stylesheet" href="css/style.css?v=20261021d">
 </head>
 <body>
 
@@ -291,8 +291,9 @@
         <path id="armCrease" fill="none" stroke="#6f6f6f" stroke-width="2.5" stroke-linecap="round"/>
       </g>
       <g id="hand" data-shade="">
-        <!-- back of the right hand reaching to the right, thumb along the top -->
-        <g transform="translate(32 40)">
+        <!-- the reaching hand, thumb on the near (lower) side so it reads as the sleeper's top hand;
+             drawn thumb-up and flipped here -->
+        <g transform="translate(32 40) scale(1 -1)">
           <g id="fingers">
             <g transform="rotate(-5 36 -15.5)"><path class="col-skin" d="M36 -21.0 L76.0 -20.1 C83.0 -20.1 83.0 -10.9 76.0 -10.9 L36 -10.0 Z" fill="#d0d0d0" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/><path d="M62.7 -18.7 q1.5 3.2 0 6.5" fill="none" stroke="#222" stroke-opacity=".35" stroke-width="1.6" stroke-linecap="round"/></g>
             <g transform="rotate(-1.5 37 -4.5)"><path class="col-skin" d="M37 -10.2 L80.7 -9.3 C88.0 -9.3 88.0 0.3 80.7 0.3 L37 1.2 Z" fill="#d0d0d0" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/><path d="M66.0 -7.9 q1.5 3.4 0 6.8" fill="none" stroke="#222" stroke-opacity=".35" stroke-width="1.6" stroke-linecap="round"/></g>
@@ -307,8 +308,8 @@
         </g>
       </g>
       <g id="fist" data-shade="" opacity="0">
-        <!-- the same hand curled into a fist: knuckles to the right, thumb wrapped across the front -->
-        <g transform="translate(30 32)">
+        <!-- the same hand curled into a fist: knuckles to the right, thumb wrapped across the front (flipped to match) -->
+        <g transform="translate(30 32) scale(1 -1)">
           <path class="col-skin" d="M-6 -23 C10 -28 34 -28 46 -23 C58 -17 61 15 50 22 C38 28 10 27 -6 23 Z" fill="#d0d0d0" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/>
           <path class="col-skin" d="M34 -24 C46 -26 56 -20 57 -12 C58 -6 52 -3 44 -4 Z" fill="#d0d0d0" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/>
           <path class="col-skin" d="M38 -6 C50 -8 59 -3 59 4 C59 10 51 12 43 10 Z" fill="#d0d0d0" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/>
@@ -375,14 +376,14 @@
   </svg>
 </button>
 
-<script src="js/config.js?v=20261021c"></script>
-<script src="js/audio.js?v=20261021c"></script>
-<script src="js/scene.js?v=20261021c"></script>
-<script src="js/look.js?v=20261021c"></script>
-<script src="js/rounds.js?v=20261021c"></script>
-<script src="js/main.js?v=20261021c"></script>
-<script src="js/sky.js?v=20261021c"></script>
-<script src="js/versions.js?v=20261021c"></script>
-<script src="js/panel.js?v=20261021c"></script>
+<script src="js/config.js?v=20261021d"></script>
+<script src="js/audio.js?v=20261021d"></script>
+<script src="js/scene.js?v=20261021d"></script>
+<script src="js/look.js?v=20261021d"></script>
+<script src="js/rounds.js?v=20261021d"></script>
+<script src="js/main.js?v=20261021d"></script>
+<script src="js/sky.js?v=20261021d"></script>
+<script src="js/versions.js?v=20261021d"></script>
+<script src="js/panel.js?v=20261021d"></script>
 </body>
 </html>
