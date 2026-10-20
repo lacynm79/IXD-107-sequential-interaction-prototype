@@ -105,7 +105,7 @@ App.scene = (() => {
     el.fingers.setAttribute('transform', `translate(40 0) scale(${h.fingers.toFixed(3)} 1) translate(-40 0)`);
     // arm: a rigid upper arm and forearm hinged at the elbow (two-bone IK), so it moves like a limb.
     // Out of reach, the shoulder leans in a little first; only then does the arm stretch.
-    Object.assign(SHOULDER, bedPt(520, 612));
+    Object.assign(SHOULDER, bedPt(484, 586));
     const bk = bedK(), UP = UPPER * bk, FO = FORE * bk;
     const cuff = handMatrix(h)(16, open ? 40 : 32);
     let S0 = { x: SHOULDER.x, y: SHOULDER.y };
@@ -160,23 +160,25 @@ App.scene = (() => {
     const k0 = bedK(), tf = `translate(${(BED.x + bedDx()).toFixed(1)} ${BED.y}) scale(${k0}) translate(${-BED.x} ${-BED.y})`;
     el.bed.setAttribute('transform', tf); el.blanketG.setAttribute('transform', tf);
     const bc = bedPt(415, 760); el.bedContact.setAttribute('cx', bc.x.toFixed(1)); el.bedContact.setAttribute('rx', (215 * k0).toFixed(1));
-    // the bed is seen end-on: the blanket is pulled up to the chin, with the shoulders as two bumps
+    // the bed is seen end-on and the sleeper lies on their side facing the clock: the body is one mound
+    // under the blanket, highest at the top shoulder; rolling over at the end swings it to the other side
     const b = W.blanket, k = ease(clamp(b.roll, 0, 1));
     const up = b.jerk * 10, br = b.breath * 3;
-    // the body follows the arm: the right shoulder lifts as the hand reaches up, and the head leans toward it
+    // the body follows the arm: the top shoulder lifts as the hand reaches up, and the head leans toward it
     const hd = W.hand, out = hd.mode !== 'hidden' ? clamp((SHOULDER.y - hd.y) / 260, 0, 1) * hd.alpha : 0;
     b.reach = (b.reach || 0) + (out - (b.reach || 0)) * .12;
-    const L = 588 - up - br + 8 * k, R = 588 - up - br - 10 * k - 10 * b.reach;   // rolling over: one shoulder comes up
-    const d = `M256 704 L258 648 C258 ${(612 - br).toFixed(1)} 276 ${L.toFixed(1)} 318 ${L.toFixed(1)} ` +
-      `Q352 ${(582 - up).toFixed(1)} 384 ${(584 - up).toFixed(1)} L446 ${(584 - up).toFixed(1)} Q478 ${(582 - up).toFixed(1)} 512 ${R.toFixed(1)} ` +
-      `C554 ${R.toFixed(1)} 572 ${(612 - br).toFixed(1)} 572 648 L574 704 Q415 718 256 704 Z`;
+    const m = x => x + (830 - 2 * x) * k, f = v => v.toFixed(1);            // mirror across the bed for the roll
+    const pk = 552 - up - br - 6 * b.reach * (1 - k);
+    const d = `M256 704 L258 648 C258 ${f(616 - br)} ${f(m(282))} ${f(594 - up)} ${f(m(330))} ${f(590 - up)} ` +
+      `Q${f(m(362))} ${f(588 - up)} ${f(m(384))} ${f(592 - up)} C${f(m(414))} ${f(566 - up)} ${f(m(440))} ${f(pk)} ${f(m(482))} ${f(pk)} ` +
+      `C${f(m(532))} ${f(pk)} ${f(m(566))} ${f(598 - br)} ${f(m(570))} 648 L574 704 Q415 718 256 704 Z`;
     el.blanket.setAttribute('d', d); el.blanketShade.setAttribute('d', d);
-    el.blanketFold.setAttribute('d', `M300 ${(600 - up).toFixed(1)} Q415 ${(608 - up).toFixed(1)} 530 ${(600 - up).toFixed(1)}`);
-    // rolling over: they turn to face the headboard, so the face gives way to the back of the head
+    el.blanketFold.setAttribute('d', `M${f(m(392))} ${f(602 - up)} Q${f(m(450))} ${f(574 - up)} ${f(m(520))} ${f(580 - up)}`);
+    // the head turns with the body: at the end they face away from the clock (the ear swaps sides)
     const lean = b.reach * (1 - k);
-    el.hair.setAttribute('transform', `translate(${(lean * 5).toFixed(1)} ${(-b.jerk * 8 - lean * 3).toFixed(1)}) rotate(${(lean * 8).toFixed(2)} 415 560)`);
-    el.sleepFace.setAttribute('opacity', (1 - k).toFixed(3));
-    el.backHair.setAttribute('opacity', k.toFixed(3));
+    el.hair.setAttribute('transform', `translate(${f(lean * 5 + 30 * k)} ${f(-b.jerk * 8 - lean * 3)}) rotate(${(lean * 8 - 8).toFixed(2)} 400 560) translate(400 552) scale(${(1 - 2 * k).toFixed(3)} 1) translate(-400 -552)`);
+    el.sleepFace.setAttribute('opacity', 1);
+    el.backHair.setAttribute('opacity', 0);
   }
 
   /* ---------- window cast ---------- */
@@ -330,7 +332,7 @@ App.scene = (() => {
     W.texts.push({ el: t, x, y, t0: performance.now(), dur: o.dur || 900, rise: o.rise ?? 30, drift: o.drift || 0, rot: o.rot || 0, pop: o.pop ?? .35, wave: o.wave || 0 });
   }
   function spawnZ(big) {
-    const zp = bedPt(452, 510);
+    const zp = bedPt(436, 508);
     spawnText(big ? 'Z' : 'z', zp.x + rnd(-6, 6), zp.y, { size: big ? 34 : rnd(20, 28), fill: '#555', dur: 2600, rise: 120, drift: 70, rot: rnd(-12, 8), pop: .15, wave: 8, italic: true });
   }
   function drawTexts(now) {
