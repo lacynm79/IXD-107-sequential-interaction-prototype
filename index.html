@@ -10,7 +10,7 @@
     // Pages updates. Ask for the current version (never cached); if this copy is older,
     // reload under a fresh address so the new page and files load.
     (function () {
-      var PAGE_V = '20261020n';
+      var PAGE_V = '20261020o';
       try {
         fetch('version.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
           if (!j || !j.v || j.v === PAGE_V) return;
@@ -23,7 +23,7 @@
     })();
   </script>
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=20261020n">
+  <link rel="stylesheet" href="css/style.css?v=20261020o">
 </head>
 <body>
 
@@ -152,9 +152,18 @@
         <rect class="col-legs" x="576" y="700" width="22" height="60" fill="#7a7a7a" stroke="#222" stroke-width="3"/>
         <rect class="col-sheet" x="128" y="572" width="490" height="36" rx="12" fill="#e2e2e2" stroke="#222" stroke-width="3"/>
         <path class="col-pillow" d="M172 560 C168 520 222 514 268 516 C320 518 344 528 340 560 C336 586 300 590 256 588 C206 586 176 584 172 560 Z" fill="#f2f2f2" stroke="#222" stroke-width="3"/>
+        <!-- the sleeper's head on the pillow: lying on their side, crown toward the headboard -->
         <g id="hair">
-          <path d="M276 566 C266 540 286 522 312 526 C328 528 336 538 330 552 C340 548 346 556 340 566 Z" class="col-hair" fill="#2b2b2b" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
-          <path d="M290 528 q-6 -14 6 -18 M306 526 q2 -16 14 -14 M322 532 q10 -10 18 -2" fill="none" stroke="#222" stroke-width="3" stroke-linecap="round"/>
+          <circle class="col-skin" cx="300" cy="540" r="30" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
+          <g id="sleepFace">
+            <path d="M311 528 q6 5 12 0" fill="none" stroke="#222" stroke-width="3" stroke-linecap="round"/>
+            <path class="col-skin" d="M325 516 q10 0 7 11" fill="#d0d0d0" stroke="#222" stroke-width="3" stroke-linecap="round"/>
+            <ellipse class="col-skin" cx="295" cy="551" rx="5" ry="7" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
+            <path d="M296 548 q-2 3 0 6" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round"/>
+          </g>
+          <path class="col-hair" d="M318 513 C300 502 272 508 268 532 C265 550 272 561 286 566 L290 560 L286 552 L294 548 L290 538 L298 535 L296 524 L306 524 L308 515 Z" fill="#2b2b2b" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
+          <circle id="backHair" class="col-hair" cx="300" cy="540" r="31" fill="#2b2b2b" stroke="#222" stroke-width="3" opacity="0"/>
+          <path d="M270 524 q-10 -4 -12 -12 M282 511 q-4 -9 2 -15 M296 507 q4 -9 12 -9" fill="none" stroke="#222" stroke-width="3" stroke-linecap="round"/>
         </g>
       </g>
 
@@ -262,13 +271,13 @@
   </svg>
 </button>
 
-<script src="js/config.js?v=20261020n"></script>
-<script src="js/audio.js?v=20261020n"></script>
-<script src="js/scene.js?v=20261020n"></script>
-<script src="js/rounds.js?v=20261020n"></script>
-<script src="js/main.js?v=20261020n"></script>
-<script src="js/sky.js?v=20261020n"></script>
-<script src="js/versions.js?v=20261020n"></script>
-<script src="js/panel.js?v=20261020n"></script>
+<script src="js/config.js?v=20261020o"></script>
+<script src="js/audio.js?v=20261020o"></script>
+<script src="js/scene.js?v=20261020o"></script>
+<script src="js/rounds.js?v=20261020o"></script>
+<script src="js/main.js?v=20261020o"></script>
+<script src="js/sky.js?v=20261020o"></script>
+<script src="js/versions.js?v=20261020o"></script>
+<script src="js/panel.js?v=20261020o"></script>
 </body>
 </html>
