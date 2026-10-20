@@ -402,6 +402,16 @@ App.rounds = (() => {
     const c = { x: 0, y: 0, rot: 0, sx: 1, sy: 1 };
     const hand = { x: 0, y: 0, vx: 0, vy: 0, mode: 'mime', alpha: .55 };
     const ptr = { x: 0, y: 0 };
+    // the held clock stays within arm's reach: the simulated hand follows the pointer as before (so the
+    // fling speed is unchanged), but the hand that's drawn, and the clock hanging from it, stop at the
+    // end of the arm, giving a little like a rubber band past it
+    const vis = { x: 0, y: 0 };
+    function inReach(x, y) {
+      const R = S.reach() - 30, dx = x - S.SHOULDER.x, dy = y - S.SHOULDER.y, d = Math.hypot(dx, dy);
+      if (d <= R) return { x, y };
+      const r = R + Math.min(40, (d - R) * .12);
+      return { x: S.SHOULDER.x + dx / d * r, y: S.SHOULDER.y + dy / d * r };
+    }
     function start(now) {
       s = { state: 'idle', mimeStart: now / 1000 + .5, grabOff: { x: 0, y: 0 }, th: 0, thd: 0, dragDist: 0, lastPtr: null,
         fly: null, drop: null, impact: null, slideV: 0, landed: false, T: now / 1000, burstUntil: 0 };
@@ -445,6 +455,7 @@ App.rounds = (() => {
       if (s.state !== 'held') return;
       const vx = hand.vx + L * s.thd * Math.cos(s.th), vy = hand.vy - L * s.thd * Math.sin(s.th);
       const speed = Math.hypot(vx, vy);
+      hand.x = vis.x; hand.y = vis.y;
       hand.mode = 'open';
       if (speed > App.cfg.throwSpeed && s.dragDist > App.cfg.throwDragPx) startFly(vx, vy, speed);
       else startDrop();
@@ -522,7 +533,8 @@ App.rounds = (() => {
           if (s.th < -1) { s.th = -1; if (s.thd < 0) s.thd *= -.25; }
         }
         hand.x = clamp(hand.x, 600, 1440); hand.y = clamp(hand.y, 120, 820);
-        c.x = hand.x + L * Math.sin(s.th); c.y = hand.y + L * Math.cos(s.th); c.rot = -s.th;
+        Object.assign(vis, inReach(hand.x, hand.y));
+        c.x = vis.x + L * Math.sin(s.th); c.y = vis.y + L * Math.cos(s.th); c.rot = -s.th;
       }
       if (s.state === 'drop') {
         s.drop.t += dts; const k = Math.min(1, s.drop.t / .55);
@@ -592,9 +604,10 @@ App.rounds = (() => {
         const closed = hand.mode === 'fist' || hand.mode === 'fistGhost';
         h.mode = closed ? 'fist' : 'open';
         S.setAnchor(closed ? 'fistGrip' : 'palm');
-        h.x = hand.x; h.y = hand.y; h.alpha = hand.alpha; h.fingers = 1;
+        const hp = s.state === 'held' ? vis : hand;
+        h.x = hp.x; h.y = hp.y; h.alpha = hand.alpha; h.fingers = 1;
         const sx = S.SHOULDER.x, sy = S.SHOULDER.y;
-        h.rot = clamp(Math.atan2(hand.y - sy, hand.x - sx) * .6, -.3, .3) * 180 / Math.PI;
+        h.rot = clamp(Math.atan2(hp.y - sy, hp.x - sx) * .6, -.3, .3) * 180 / Math.PI;
       } else if (s.state === 'fly') {
         // released hand opens, follows through and starts to fall back
         const h = W.hand; h.mode = 'open'; S.setAnchor('palm');

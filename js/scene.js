@@ -403,7 +403,9 @@ App.scene = (() => {
   }
 
   resetState();
-  return { el, W, CS, HOME, U, SHOULDER, bedPt, WALL_EDGE, FLOOR, M, reduce,
+  // how far the wrist can get from the shoulder: the straight arm plus the shoulder's lean
+  const reach = () => (UPPER + FORE) * bedK() * .98 + 60 * bedK();
+  return { el, W, CS, HOME, U, SHOULDER, bedPt, reach, WALL_EDGE, FLOOR, M, reduce,
     clamp, lerp, ease, easeOut, easeOutBack, approach, rnd, wob,
     resetState, ringLook, setAnchor, handMatrix, barTop, pivotToCenter, moveCam, toWorld, worldPerPx,
     spawnText, spawnZ, addCrack, draw };
