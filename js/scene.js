@@ -7,7 +7,7 @@ App.scene = (() => {
   const $ = id => document.getElementById(id);
   const el = {};
   ['stage', 'shake', 'cam', 'clock', 'bellL', 'bellR', 'bar', 'lines', 'display', 'clockCracks', 'looseBell',
-   'arm', 'armOut', 'armFill', 'armCrease', 'hand', 'fingers', 'fist', 'blanket', 'blanketFold', 'hair', 'sleepFace', 'backHair', 'prickles', 'fx',
+   'arm', 'armOut', 'armFill', 'armCrease', 'hand', 'fingers', 'fist', 'blanket', 'blanketFold', 'hair', 'sleepFace', 'backHair', 'prickles', 'fx', 'roomLight', 'beam', 'blanketShade', 'armHi',
    'skyDawn', 'skyMidday', 'skySunset', 'skyNight', 'rooster', 'neighbor', 'cat', 'windowFx', 'wallCracks']
     .forEach(k => { el[k] = $(k); });
 
@@ -118,6 +118,9 @@ App.scene = (() => {
     const aw = App.cfg.armWidth;
     el.armOut.setAttribute('d', path); el.armOut.setAttribute('stroke-width', aw + 6);
     el.armFill.setAttribute('d', path); el.armFill.setAttribute('stroke-width', aw);
+    // a soft highlight along the upper-left side of the sleeve
+    el.armHi.setAttribute('d', path); el.armHi.setAttribute('stroke-width', (aw * .3).toFixed(1));
+    el.armHi.setAttribute('transform', `translate(${(-aw * .15).toFixed(1)} ${(-aw * .15).toFixed(1)})`);
     // sleeve folds: one across the forearm near the cuff, one in the crook of the elbow when it bends
     const px = -fy, py = fx, cx = cuff.x - fx * 46, cy = cuff.y - fy * 46, r = aw * .32;
     let folds = `M${(cx + px * r).toFixed(1)} ${(cy + py * r).toFixed(1)} q${(-fx * 7 - px * r).toFixed(1)} ${(-fy * 7 - py * r).toFixed(1)} ${(-px * 2 * r).toFixed(1)} ${(-py * 2 * r).toFixed(1)}`;
@@ -145,7 +148,7 @@ App.scene = (() => {
     const d = `M256 704 L258 648 C258 ${(612 - br).toFixed(1)} 276 ${L.toFixed(1)} 318 ${L.toFixed(1)} ` +
       `Q352 ${(582 - up).toFixed(1)} 384 ${(584 - up).toFixed(1)} L446 ${(584 - up).toFixed(1)} Q478 ${(582 - up).toFixed(1)} 512 ${R.toFixed(1)} ` +
       `C554 ${R.toFixed(1)} 572 ${(612 - br).toFixed(1)} 572 648 L574 704 Q415 718 256 704 Z`;
-    el.blanket.setAttribute('d', d);
+    el.blanket.setAttribute('d', d); el.blanketShade.setAttribute('d', d);
     el.blanketFold.setAttribute('d', `M300 ${(600 - up).toFixed(1)} Q415 ${(608 - up).toFixed(1)} 530 ${(600 - up).toFixed(1)}`);
     // rolling over: they turn to face the headboard, so the face gives way to the back of the head
     const lean = b.reach * (1 - k);
@@ -220,6 +223,34 @@ App.scene = (() => {
     el.skyMidday.setAttribute('opacity', op.midday.toFixed(3));
     el.skySunset.setAttribute('opacity', op.sunset.toFixed(3));
     el.skyNight.setAttribute('opacity', op.night.toFixed(3));
+    drawLight(op);
+  }
+
+  /* ---------- soft 3D look: room tint and window light by time of day ---------- */
+  // see-through tint for the room and the color of the light through the window, per time of day
+  const LIGHT = {
+    dawn:   { tint: [255, 170, 120], tintOp: .1, beam: [255, 214, 170], beamOp: .45 },
+    midday: { tint: [255, 250, 235], tintOp: 0, beam: [255, 250, 225], beamOp: .5 },
+    sunset: { tint: [255, 120, 60], tintOp: .14, beam: [255, 170, 110], beamOp: .5 },
+    night:  { tint: [30, 36, 100], tintOp: .36, beam: [190, 205, 255], beamOp: .35 },
+  };
+  let lastLook = null;
+  const beamStops = document.querySelectorAll('#beamGrad stop');
+  function drawLight(op) {
+    const cfg = App.cfg;
+    const look = cfg.look3d ? 'soft' : 'flat';
+    if (look !== lastLook) { el.stage.classList.remove('soft', 'flat'); el.stage.classList.add(look); document.body.classList.toggle('flat', look === 'flat'); lastLook = look; }
+    // the sky layers stack (dawn underneath), so each later layer covers the ones below it
+    const w = { night: op.night }; w.sunset = op.sunset * (1 - w.night); w.midday = op.midday * (1 - op.sunset) * (1 - op.night);
+    w.dawn = Math.max(0, 1 - w.night - w.sunset - w.midday);
+    const mix = key => [0, 1, 2].map(i => Object.keys(LIGHT).reduce((a, k) => a + LIGHT[k][key][i] * w[k], 0));
+    const rgb = c => `rgb(${c.map(v => Math.round(v)).join(',')})`;
+    const tintOp = Object.keys(LIGHT).reduce((a, k) => a + LIGHT[k].tintOp * w[k], 0);
+    el.roomLight.setAttribute('fill', rgb(mix('tint')));
+    el.roomLight.setAttribute('opacity', cfg.roomLight ? tintOp.toFixed(3) : 0);
+    const beam = rgb(mix('beam'));
+    beamStops.forEach(st => st.setAttribute('stop-color', beam));
+    el.beam.setAttribute('opacity', Object.keys(LIGHT).reduce((a, k) => a + LIGHT[k].beamOp * w[k], 0).toFixed(3));
   }
 
   /* ---------- camera ---------- */

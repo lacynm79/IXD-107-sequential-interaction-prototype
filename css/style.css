@@ -118,6 +118,7 @@ body {
 }
 /* scaled as a whole with the screen (--ui is set in js/panel.js) */
 #tools { width: 290px; zoom: var(--ui, 1); }
+#tools.closed { width: auto; }
 .tpanel.closed { width: auto; }
 .tpanel.closed .panelBody { display: none; }
 .panelToggle {
@@ -210,6 +211,7 @@ body { background: var(--colPage, #d6d6d6); }
 #stage .col-floor { fill: var(--colFloor); }
 #stage .col-floorLine { stroke: var(--colFloorLine); }
 #stage .col-baseboard { fill: var(--colBaseboard); }
+#stage .col-windowFrame { fill: var(--colWindowFrame); }
 #stage [stroke="#222"], #stage [stroke="#222222"] { stroke: var(--colInk); }
 #stage text[fill="#222"], #stage text[fill="#1c1c1c"] { fill: var(--colInk); }
 #stage .col-headboard { fill: var(--colHeadboard); }
@@ -312,3 +314,9 @@ body { background: var(--colPage, #d6d6d6); }
 .tpanel .verList .act.small { flex: none; }
 .tpanel button.step.del { width: 28px; height: 28px; font-size: 16px; }
 .tpanel button.act.copyAll { width: 100%; margin-top: 8px; }
+
+/* ---------- soft 3D look (toggle: "Soft 3D shading" in the Window tab) ---------- */
+/* finer, softer outlines: the ink still takes its color from the Colors tab */
+#stage.soft [stroke-width="3"], #bulb [stroke-width="3"] { stroke-width: 2px; }
+#stage.soft [stroke="#222"], #stage.soft [stroke="#222222"] { stroke-opacity: .62; }
+#stage.flat .look3d, body.flat #bulb .look3d { display: none; }

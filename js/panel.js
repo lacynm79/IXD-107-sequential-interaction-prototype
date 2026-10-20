@@ -20,9 +20,10 @@
   const fmtVal = (v, step) => Number(v).toFixed(decimals(step));
   const dock = h('div', { id: 'dock' });
   document.body.append(dock);
-  // the window grows with the screen like the room and the bulb do (fixed pixels look tiny on a big monitor)
+  // the window grows with the screen like the room and the bulb do (fixed pixels look tiny on a big monitor);
+  // 585 = 30% larger than its original proportion
   function uiScale() {
-    const s = Math.max(1, Math.min(1.7, innerHeight / 760, (innerWidth - 24) / 290));
+    const s = Math.max(1, Math.min(2.2, innerHeight / 585, (innerWidth - 24) / 290));
     document.documentElement.style.setProperty('--ui', s.toFixed(3));
   }
   addEventListener('resize', uiScale); uiScale();

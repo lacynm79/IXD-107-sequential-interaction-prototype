@@ -113,6 +113,7 @@ window.App = window.App || {};
       ['colFloor', 'Floor', 'color'],
       ['colFloorLine', 'Floorboard lines', 'color'],
       ['colBaseboard', 'Baseboard', 'color'],
+      ['colWindowFrame', 'Window frame', 'color'],
       ['colPage', 'Page edges', 'color'],
       ['colInk', 'Outlines and lettering', 'color'],
     ]],
@@ -214,6 +215,8 @@ window.App = window.App || {};
       ['winNeighborSize', 'Neighbor size', 'range', .3, 2, .05, '×'],
       ['winCat', 'Cat', 'check'],
       ['winCatSize', 'Cat size', 'range', .3, 2, .05, '×'],
+      ['look3d', 'Soft 3D shading (lighting, shadows, finer outlines)', 'check'],
+      ['roomLight', 'Room light follows the time of day', 'check'],
     ]],
     ...TODS.map(([T]) => [T, SKY_ROWS(T)]),
   ];
@@ -224,7 +227,7 @@ window.App = window.App || {};
     Night:  { top: '#1c1c1c', bottom: '#2e2e2e', sun: [18, 75, 20], moon: [18, 70, 30, 'full'] },
   };
   const windowDefaults = () => {
-    const d = { winShow: 'story', winRooster: true, winRoosterSize: 1, winNeighbor: true, winNeighborSize: 1, winCat: true, winCatSize: 1 };
+    const d = { winShow: 'story', winRooster: true, winRoosterSize: 1, winNeighbor: true, winNeighborSize: 1, winCat: true, winCatSize: 1, look3d: true, roomLight: true };
     TODS.forEach(([T]) => {
       const k = SKY_DEFAULTS[T];
       Object.assign(d, {
@@ -271,7 +274,7 @@ window.App = window.App || {};
     bulbScale: 1.6, bugScale: 1.35, chainLen: 0.7, tagScale: 1.3,
     armWidth: 50, handScale: 1.3,
     // color panel
-    colWall: '#ececec', colSideWall: '#bcbcbc', colFloor: '#614c4c', colFloorLine: '#bcbcbc', colBaseboard: '#bdbdbd',
+    colWall: '#ececec', colSideWall: '#bcbcbc', colFloor: '#614c4c', colFloorLine: '#bcbcbc', colBaseboard: '#bdbdbd', colWindowFrame: '#f3f0ea',
     colPage: '#d6d6d6', colInk: '#222222',
     colHeadboard: '#835d5c', colBedBase: '#9c9c9c', colSheet: '#5ab8e2', colPillow: '#f2f2f2',
     colBlanket: '#3a6fb0', colBlanketCheck: '#c34e36', colLegs: '#0c130a',
