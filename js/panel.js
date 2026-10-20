@@ -22,9 +22,9 @@
   document.body.append(dock);
 
   /* ---------- the Tools window: one collapsible window with a tab per panel ---------- */
-  const tools = h('aside', { id: 'tools', class: 'tpanel', 'aria-label': 'Prototype tools' });
+  const tools = h('aside', { id: 'tools', class: 'tpanel', 'aria-label': 'Modify the prototype' });
   const toolsToggle = h('button', { class: 'panelToggle', type: 'button', 'aria-expanded': 'true', 'aria-controls': 'toolsBody' },
-    h('span', { class: 'chev', 'aria-hidden': 'true', text: '‹' }), h('span', { text: 'Tools' }));
+    h('span', { class: 'chev', 'aria-hidden': 'true', text: '‹' }), h('span', { text: 'Modify' }));
   const toolsBody = h('div', { id: 'toolsBody', class: 'panelBody' });
   const tabBar = h('div', { class: 'toolTabs', role: 'tablist', 'aria-label': 'Tool panels' });
   // preview: Start = the sleeping opening; the others replay the lull and jolt into that round
