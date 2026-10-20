@@ -344,6 +344,20 @@ App.seq = (() => {
     setTimeout(() => { pulling = false; }, 1900);
   }
   bulb.addEventListener('click', pull);
+  // size of the lamp, chain and reset tag (Triggers panel > Reset light)
+  const bulbSvg = document.querySelector('#bulb svg'), chainLine = document.getElementById('chainLine'), bead = document.getElementById('chainBead');
+  function bulbLayout() {
+    const c = App.cfg, end = 176 + 64 * (c.chainLen - 1), r = 11 * c.tagScale, cy = end + r;
+    chainLine.setAttribute('d', `M72 112 L72 ${end.toFixed(1)}`);
+    bead.setAttribute('transform', `translate(72 ${cy.toFixed(1)}) scale(${c.tagScale}) translate(-72 -187)`);
+    const H = Math.max(230, cy + r + 8);
+    bulbSvg.setAttribute('viewBox', `0 0 120 ${H.toFixed(1)}`);
+    document.documentElement.style.setProperty('--bulbS', c.bulbScale);
+    document.documentElement.style.setProperty('--bulbK', (c.bulbScale * H / 230).toFixed(4));
+  }
+  App.config.onChange(k => { if (['bulbScale', 'chainLen', 'tagScale'].includes(k)) bulbLayout(); });
+  bulbLayout();
+
   function bulbFrame() {
     const now = performance.now();
     const k = pulling ? (now - pullT) : 1e9;
@@ -358,7 +372,8 @@ App.seq = (() => {
     const a = now * .0021;
     const x = 60 + 36 * Math.cos(a), y = 96 + 13 * Math.sin(a) + 4 * Math.sin(now * .006);
     const face = -Math.sin(a) >= 0 ? 1 : -1;
-    B.fly.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${face} 1)`);
+    const bs = App.cfg.bugScale;
+    B.fly.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${(face * bs).toFixed(3)} ${bs})`);
     B.wings.setAttribute('transform', `scale(1 ${Math.sin(now * .09) > 0 ? 1 : .4})`);
     let g = .5, r = 16;
     if (pulling && k > 100 && k < 900) { const f = Math.abs(Math.sin((k - 100) / 800 * Math.PI * 2)); g = .6 + .4 * f; r = 16 + 46 * f; }

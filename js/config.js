@@ -92,6 +92,12 @@ window.App = window.App || {};
       ['throwDragPx', 'Minimum drag distance', 'range', 0, 400, 5, 'room px'],
       ['throwSpeed', 'Minimum fling speed', 'range', 300, 2500, 50, 'room px/s'],
     ]],
+    ['Reset light', [
+      ['bulbScale', 'Bulb size (whole lamp)', 'range', .4, 2.5, .05, '×'],
+      ['bugScale', 'Firefly size', 'range', .3, 3, .05, '×'],
+      ['chainLen', 'Chain length', 'range', .5, 3, .05, '×'],
+      ['tagScale', 'Reset tag size', 'range', .5, 3, .05, '×'],
+    ]],
   ];
 
   // Color panel: one entry per recolorable part. The window frame, study sky artwork and ring
@@ -258,6 +264,7 @@ window.App = window.App || {};
     slapsNeeded: 4, slapGapMs: 0, slapPad: 0, slapLift: 150,
     fistSwingPx: 21, fistSwingMs: 1300, fistReachPx: 380, fistFadeMs: 2500,
     throwGrabPx: 131, throwDragPx: 112,
+    bulbScale: 1, bugScale: 1, chainLen: 1, tagScale: 1,
     // color panel
     colWall: '#ececec', colSideWall: '#bcbcbc', colFloor: '#614c4c', colFloorLine: '#bcbcbc', colBaseboard: '#bdbdbd',
     colPage: '#d6d6d6', colInk: '#222222',
