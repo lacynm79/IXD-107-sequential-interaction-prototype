@@ -5,7 +5,7 @@
    - Trigger panel (distances, times and counts needed to complete each step): shown; see
      SHOW_TRIGGER_PANEL in js/config.js.
    - Color panel (component colors): shown; see SHOW_COLOR_PANEL in js/config.js.
-   Visible panels stack in one dock on the left. */
+   Visible panels share one Tools window on the left, a tab each. */
 (() => {
   const C = App.config, cfg = App.cfg;
   const INSTRUCTION = 'Apply these values as the prototype’s saved defaults. Retain the panel code for later adjustments. Commit and push the changes.';
@@ -20,6 +20,57 @@
   const fmtVal = (v, step) => Number(v).toFixed(decimals(step));
   const dock = h('div', { id: 'dock' });
   document.body.append(dock);
+
+  /* ---------- the Tools window: one collapsible window with a tab per panel ---------- */
+  const tools = h('aside', { id: 'tools', class: 'tpanel', 'aria-label': 'Prototype tools' });
+  const toolsToggle = h('button', { class: 'panelToggle', type: 'button', 'aria-expanded': 'true', 'aria-controls': 'toolsBody' },
+    h('span', { class: 'chev', 'aria-hidden': 'true', text: '‹' }), h('span', { text: 'Tools' }));
+  const toolsBody = h('div', { id: 'toolsBody', class: 'panelBody' });
+  const tabBar = h('div', { class: 'toolTabs', role: 'tablist', 'aria-label': 'Tool panels' });
+  // preview: Start = the sleeping opening; the others replay the lull and jolt into that round
+  const jump = h('div', { class: 'jump' }, h('span', { class: 'jumpLabel', text: 'Preview from' }));
+  ['Start', 'Snooze', 'Slap', 'Fist', 'Throw'].forEach((name, i) => {
+    const b = h('button', { type: 'button', text: name });
+    b.addEventListener('click', () => (i === 0 ? App.seq.restart() : App.seq.jumpTo(i - 1)));
+    jump.append(b);
+  });
+  toolsBody.append(tabBar, jump);
+  tools.append(toolsToggle, toolsBody);
+  const tabs = [];
+  function addTab(id, title, label) {
+    const pane = h('section', { id, class: 'tpane', role: 'tabpanel', 'aria-label': label, 'aria-labelledby': id + 'Tab' });
+    const btn = h('button', { type: 'button', role: 'tab', id: id + 'Tab', 'aria-controls': id, text: title });
+    btn.addEventListener('click', () => selectTab(id));
+    tabBar.append(btn); toolsBody.append(pane);
+    tabs.push({ id, btn, pane });
+    return pane;
+  }
+  function selectTab(id, focus) {
+    if (!tabs.some(t => t.id === id)) id = tabs[0].id;
+    tabs.forEach(t => {
+      const on = t.id === id;
+      t.btn.setAttribute('aria-selected', String(on)); t.btn.tabIndex = on ? 0 : -1; t.btn.classList.toggle('on', on);
+      t.pane.hidden = !on;
+      if (on && focus) t.btn.focus();
+    });
+    try { localStorage.setItem('fmm-tools-tab', id); } catch (_) { /* storage unavailable */ }
+  }
+  // arrow keys move between tabs
+  tabBar.addEventListener('keydown', e => {
+    const i = tabs.findIndex(t => t.btn === document.activeElement);
+    if (i < 0) return;
+    const n = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : null;
+    if (n == null) return;
+    e.preventDefault(); selectTab(tabs[(n + tabs.length) % tabs.length].id, true);
+  });
+  function setToolsOpen(open) {
+    tools.classList.toggle('closed', !open);
+    toolsToggle.setAttribute('aria-expanded', String(open));
+    try { localStorage.setItem('fmm-tools-open', open ? '1' : '0'); } catch (_) { /* storage unavailable */ }
+  }
+  toolsToggle.addEventListener('click', () => setToolsOpen(tools.classList.contains('closed')));
+  // a pane is on screen when the window is open and its tab is selected
+  const shown = pane => !tools.classList.contains('closed') && !pane.hidden;
   // every built panel registers here so a restored version can refresh all controls
   const registry = [];
   const refreshAll = () => registry.forEach(({ keys, inputs, refresh }) => {
@@ -89,28 +140,14 @@
     return h('div', { class: 'row ease' }, h('label', { for: iid, text }), h('div', { class: 'easeRow' }, sel, svg));
   }
 
-  function buildPanel({ id, title, label, schema, copyTitle, note, storageKey, extra, custom }) {
-    const panel = h('aside', { id, class: 'tpanel', 'aria-label': label });
-    const bodyId = id + 'Body';
-    const toggle = h('button', { class: 'panelToggle', type: 'button', 'aria-expanded': 'true', 'aria-controls': bodyId },
-      h('span', { class: 'chev', 'aria-hidden': 'true', text: '‹' }), h('span', { text: title }));
-    const body = h('div', { id: bodyId, class: 'panelBody' });
-    panel.append(toggle, body);
+  function buildPanel({ id, title, label, schema, copyTitle, note, extra, custom }) {
+    const panel = addTab(id, title, label), body = panel;
 
     // actions
     const restoreBtn = h('button', { type: 'button', class: 'act', text: 'Restore defaults' });
     const copyBtn = h('button', { type: 'button', class: 'act primary', text: 'Copy settings' });
     const status = h('p', { class: 'status', 'aria-live': 'polite' });
     body.append(h('div', { class: 'actions' }, restoreBtn, copyBtn), status);
-
-    // preview: Start = the sleeping opening; the others replay the lull and jolt into that round
-    const jump = h('div', { class: 'jump' }, h('span', { class: 'jumpLabel', text: 'Preview from' }));
-    ['Start', 'Snooze', 'Slap', 'Fist', 'Throw'].forEach((name, i) => {
-      const b = h('button', { type: 'button', text: name });
-      b.addEventListener('click', () => (i === 0 ? App.seq.restart() : App.seq.jumpTo(i - 1)));
-      jump.append(b);
-    });
-    body.append(jump);
     if (extra) body.append(extra);
 
     // controls
@@ -124,18 +161,6 @@
       body.append(det);
     });
     body.append(h('p', { class: 'note', text: note }));
-    dock.append(panel);
-
-    // collapse / expand (remembered per viewer when storage is available)
-    function setOpen(open) {
-      panel.classList.toggle('closed', !open);
-      toggle.setAttribute('aria-expanded', String(open));
-      try { localStorage.setItem(storageKey, open ? '1' : '0'); } catch (_) { /* storage unavailable */ }
-    }
-    toggle.addEventListener('click', () => setOpen(panel.classList.contains('closed')));
-    let startOpen = true;
-    try { startOpen = localStorage.getItem(storageKey) !== '0'; } catch (_) { /* storage unavailable */ }
-    setOpen(startOpen);
 
     registry.push({ keys, inputs, get refresh() { return refresh; }, text: () => settingsText(false) });
     restoreBtn.addEventListener('click', () => {
@@ -167,7 +192,7 @@
     function flash(msg) { status.textContent = msg; clearTimeout(flashT); flashT = setTimeout(() => { status.textContent = ''; }, 2600); }
     function legacyCopy(text) {
       const ta = h('textarea', { class: 'copyBox', readonly: '' }); ta.value = text;
-      body.insertBefore(ta, jump);
+      status.after(ta);
       ta.select();
       let ok = false;
       try { ok = document.execCommand('copy'); } catch (_) { ok = false; }
@@ -204,7 +229,7 @@
     g.appendChild(tag);
     const show = (n, on) => n.setAttribute('display', on ? '' : 'none');
     function frame() {
-      const on = checkbox.checked && !panel.classList.contains('closed') && App.seq.phase === 'round';
+      const on = checkbox.checked && shown(panel) && App.seq.phase === 'round';
       show(g, on);
       if (on) {
         const r = App.seq.round;
@@ -234,11 +259,7 @@
   /* ---------- versions: auto-save on/off, save by hand, restore past versions ---------- */
   function versionsPanel() {
     const V = App.versions;
-    const panel = h('aside', { id: 'versionsPanel', class: 'tpanel', 'aria-label': 'Saved versions' });
-    const toggle = h('button', { class: 'panelToggle', type: 'button', 'aria-expanded': 'true', 'aria-controls': 'versionsBody' },
-      h('span', { class: 'chev', 'aria-hidden': 'true', text: '‹' }), h('span', { text: 'Versions' }));
-    const body = h('div', { id: 'versionsBody', class: 'panelBody' });
-    panel.append(toggle, body);
+    const body = addTab('versionsPanel', 'Versions', 'Saved versions');
     const autoBox = h('input', { type: 'checkbox', id: 'autoSave' });
     autoBox.checked = V.auto;
     autoBox.addEventListener('change', () => { V.setAuto(autoBox.checked); flash(autoBox.checked ? 'Auto-save is on.' : 'Auto-save is off. Use Save version to keep your edits.'); });
@@ -287,24 +308,14 @@
     saveBtn.addEventListener('click', () => { V.save(name.value.trim()); name.value = ''; flash('Version saved.'); });
     name.addEventListener('keydown', e => { if (e.key === 'Enter') saveBtn.click(); });
     V.onChange(render); render();
-    dock.append(panel);
-    function setOpen(open) {
-      panel.classList.toggle('closed', !open); toggle.setAttribute('aria-expanded', String(open));
-      try { localStorage.setItem('fmm-versions-open', open ? '1' : '0'); } catch (_) { /* storage unavailable */ }
-    }
-    toggle.addEventListener('click', () => setOpen(panel.classList.contains('closed')));
-    let startOpen = true;
-    try { startOpen = localStorage.getItem('fmm-versions-open') !== '0'; } catch (_) { /* storage unavailable */ }
-    setOpen(startOpen);
   }
-  if (App.versions && (C.showTriggerPanel || C.showColorPanel || C.showWindowPanel || C.showPanel)) versionsPanel();
 
   if (C.showTriggerPanel) {
     const box = h('input', { type: 'checkbox', id: 'showZones', checked: '' });
     const zoneRow = h('label', { class: 'check', for: 'showZones' }, box, h('span', { text: 'Show trigger zones on the stage' }));
     const p = buildPanel({
       id: 'triggerPanel', title: 'Triggers', label: 'Trigger controls',
-      schema: C.TRIGGER_SCHEMA, copyTitle: 'Five More Minutes: trigger settings', storageKey: 'fmm-trigger-panel-open',
+      schema: C.TRIGGER_SCHEMA, copyTitle: 'Five More Minutes: trigger settings',
       note: 'Changes apply right away to the step in progress. Use Preview from to replay a step.',
       extra: zoneRow,
     });
@@ -466,7 +477,7 @@
       el.addEventListener('pointerleave', () => { hovering = false; touch(); });
       ['input', 'change', 'click', 'focusin', 'pointerdown'].forEach(ev => el.addEventListener(ev, touch));
     });
-    App.winPreview = () => (preview.checked && !panel.classList.contains('closed') &&
+    App.winPreview = () => (preview.checked && shown(panel) &&
       (hovering || performance.now() - lastEdit < 2500) ? NAMES[cur] : null);
     show(cur);
     return () => show(cur);
@@ -475,7 +486,7 @@
   if (C.showColorPanel) {
     buildPanel({
       id: 'colorPanel', title: 'Colors', label: 'Color controls',
-      schema: C.COLOR_SCHEMA, copyTitle: 'Five More Minutes: color settings', storageKey: 'fmm-color-panel-open',
+      schema: C.COLOR_SCHEMA, copyTitle: 'Five More Minutes: color settings',
       custom: colorPicker,
       note: 'Pick an item, then drag in the color square and the rainbow strip. The stage updates as you go. The window frame, the original sky artwork and the ring lines are bitmaps from the studies and keep their own colors.',
     });
@@ -483,7 +494,7 @@
   if (C.showWindowPanel) {
     buildPanel({
       id: 'windowPanel', title: 'Window', label: 'Window controls',
-      schema: C.WINDOW_SCHEMA, copyTitle: 'Five More Minutes: window settings', storageKey: 'fmm-window-panel-open',
+      schema: C.WINDOW_SCHEMA, copyTitle: 'Five More Minutes: window settings',
       custom: windowPanel,
       note: 'Pick a time of day, then add or remove the sun, moon, stars, comet, planets and clouds, and set their sizes and colors. Turn off the original artwork for a clean gradient sky.',
     });
@@ -491,8 +502,18 @@
   if (C.showPanel) {
     buildPanel({
       id: 'motionPanel', title: 'Motion', label: 'Motion controls',
-      schema: C.SCHEMA, copyTitle: 'Five More Minutes: motion settings', storageKey: 'fmm-panel-open',
+      schema: C.SCHEMA, copyTitle: 'Five More Minutes: motion settings',
       note: 'Changes apply to the next move. Use Preview from to replay a step.',
     });
+  }
+  // Versions comes last: it saves and copies what the other tabs set
+  if (App.versions && tabs.length) versionsPanel();
+
+  if (tabs.length) {
+    dock.append(tools);
+    let open = true, tab = tabs[0].id;
+    try { open = localStorage.getItem('fmm-tools-open') !== '0'; tab = localStorage.getItem('fmm-tools-tab') || tab; } catch (_) { /* storage unavailable */ }
+    selectTab(tab);
+    setToolsOpen(open);
   }
 })();

@@ -133,6 +133,21 @@ body {
   outline: 2px solid var(--ink); outline-offset: 2px;
 }
 .panelBody { padding: 0 12px 12px; border-top: 1.5px solid #bdbdbd; overscroll-behavior: contain; }
+/* one Tools window: a row of tabs (sticks to the top while the window scrolls), then the selected panel */
+.tpanel .toolTabs {
+  position: sticky; top: 0; z-index: 1;
+  display: flex; gap: 4px; margin: 0 -12px 6px; padding: 8px 12px;
+  background: rgba(246, 246, 246, .97); border-bottom: 1.5px solid #d0d0d0;
+}
+.tpanel .toolTabs button {
+  flex: 1 1 0; min-width: 0; min-height: 32px; padding: 4px 2px;
+  border: 1.5px solid var(--ink); border-radius: 8px; background: #fff; color: var(--ink);
+  font: 600 11.5px ui-sans-serif, system-ui, sans-serif; cursor: pointer;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.tpanel .toolTabs button:hover { background: #e4e4e4; }
+.tpanel .toolTabs button.on { background: var(--ink); color: #fff; }
+.tpanel .tpane[hidden] { display: none; }
 .tpanel .actions { display: flex; gap: 8px; margin-top: 10px; }
 .tpanel button.act, .tpanel .jump button {
   flex: 1;
@@ -148,7 +163,7 @@ body {
 .tpanel .status { min-height: 1.35em; margin: 6px 2px 0; font-size: 12px; color: #444; }
 .tpanel .jump { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 4px 0 6px; }
 .tpanel .jumpLabel { width: 100%; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #555; }
-.tpanel .jump button { flex: 1 0 auto; min-height: 30px; padding: 4px 8px; font-size: 11.5px; }
+.tpanel .jump button { flex: 1 1 0; min-width: 0; min-height: 30px; padding: 4px 2px; font-size: 11.5px; }
 .tpanel details { border-top: 1px solid #d0d0d0; padding: 2px 0; }
 .tpanel summary {
   cursor: pointer; padding: 8px 2px; list-style-position: inside;
