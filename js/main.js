@@ -8,7 +8,7 @@ App.seq = (() => {
   const SHOTS = ['snooze', 'slap', 'fist', 'throw'];
   const MINUTES = [360, 767, 1098, 1407];              // 6:00, 12:47, 6:18 pm, 11:27 pm
   const fmt = m => { m = Math.round(m); const h = Math.floor(m / 60) % 24, mm = m % 60; return `${((h + 11) % 12) + 1}:${String(mm).padStart(2, '0')}`; };
-  const REST = { x: 470, y: 680, rot: 0 };             // hand tucked under the blanket
+  const REST = { get x() { return S.bedPt(470, 680).x; }, get y() { return S.bedPt(470, 680).y; }, rot: 0 };   // hand tucked under the blanket
   const hintEl = document.getElementById('hint'), kbd = document.getElementById('kbd');
 
   let phase = 'sleep', cur = -1, t0 = 0, timers = [], tweens = [];

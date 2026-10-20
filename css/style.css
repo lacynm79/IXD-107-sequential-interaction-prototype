@@ -223,7 +223,6 @@ body { background: var(--colPage, #d6d6d6); }
 #stage .col-legs { fill: var(--colLegs); }
 #stage .col-hair { fill: var(--colHair); }
 #stage .col-sleeve { fill: var(--colSleeve); }
-#stage #armFill { stroke: var(--colSleeve); }
 #stage .col-skin { fill: var(--colSkin); }
 #stage .col-cuff { fill: var(--colCuff); }
 #stage .col-standTop { fill: var(--colStandTop); }
@@ -318,5 +317,5 @@ body { background: var(--colPage, #d6d6d6); }
 /* ---------- soft 3D look (toggle: "Soft 3D shading" in the Window tab) ---------- */
 /* finer, softer outlines: the ink still takes its color from the Colors tab */
 #stage.soft [stroke-width="3"], #bulb [stroke-width="3"] { stroke-width: 2px; }
-#stage.soft [stroke="#222"], #stage.soft [stroke="#222222"] { stroke-opacity: .62; }
+#stage.soft [stroke="#222"]:not([stroke-opacity]), #stage.soft [stroke="#222222"]:not([stroke-opacity]) { stroke-opacity: .62; }
 #stage.flat .look3d, body.flat #bulb .look3d { display: none; }

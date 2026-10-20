@@ -101,6 +101,7 @@ window.App = window.App || {};
     ['Sleeper', [
       ['armWidth', 'Arm thickness', 'range', 20, 70, 1, 'room px'],
       ['handScale', 'Hand and fist size', 'range', .6, 1.8, .05, '×'],
+      ['bedScale', 'Bed and sleeper size', 'range', .8, 1.6, .05, '×'],
     ]],
   ];
 
@@ -272,7 +273,7 @@ window.App = window.App || {};
     fistSwingPx: 21, fistSwingMs: 1300, fistReachPx: 380, fistFadeMs: 2500,
     throwGrabPx: 131, throwDragPx: 112,
     bulbScale: 1.6, bugScale: 1.35, chainLen: 0.7, tagScale: 1.3,
-    armWidth: 50, handScale: 1.3,
+    armWidth: 42, handScale: 1.05, bedScale: 1.3,
     // color panel
     colWall: '#ececec', colSideWall: '#bcbcbc', colFloor: '#614c4c', colFloorLine: '#bcbcbc', colBaseboard: '#bdbdbd', colWindowFrame: '#f3f0ea',
     colPage: '#d6d6d6', colInk: '#222222',

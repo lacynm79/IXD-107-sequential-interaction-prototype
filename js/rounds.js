@@ -214,8 +214,11 @@ App.rounds = (() => {
      ===================================================================== */
   const fist = (() => {
     const K = 1.3;                                     // study units to room units
-    const HOMEF = { x: 515, y: 440 };
-    const MAXX = 548;                                  // the fist can't reach the clock without the punch
+    // the fist stays out between the shoulder and the clock, raised, so the arm reaches toward the clock
+    // instead of folding back over the sleeper's head
+    const HOMEF = { x: 570, y: 410 };
+    const MAXX = 600;                                  // the fist can't reach the clock without the punch
+    const MINX = 470;
     let s;
     function start(now) {
       s = { phase: 'clench', t0: now, rage: 0, lastGain: 0, fist: { ...HOMEF }, target: null,
@@ -241,7 +244,7 @@ App.rounds = (() => {
     }
     function makeContact(p, now) {
       s.contact = true;
-      s.fist.x = Math.min(MAXX, p.x); s.fist.y = clamp(p.y, 270, 480);
+      s.fist.x = clamp(p.x, MINX, MAXX); s.fist.y = clamp(p.y, 270, 470);
       s.turnX = p.x; s.turnTime = now; s.prevX = p.x; s.lastDir = 0;
     }
     function move(p) {
@@ -285,7 +288,7 @@ App.rounds = (() => {
         e.preventDefault();
         const dir = e.key === 'ArrowLeft' ? -1 : 1;
         s.contact = true; s.lastMove = now;
-        s.target = { x: clamp(s.fist.x + dir * 60, 380, MAXX), y: s.fist.y };
+        s.target = { x: clamp(s.fist.x + dir * 60, MINX, MAXX), y: s.fist.y };
         if (s.keyDir && dir !== s.keyDir && now - s.keyT < App.cfg.fistSwingMs) gain(now);
         s.keyDir = dir; s.keyT = now;
       } else if (e.key === ' ' || e.key === 'Enter') {
@@ -338,12 +341,12 @@ App.rounds = (() => {
         const active = s.contact && s.target && now - s.lastMove < 1400;
         let bx, by, rot = 0;
         if (active) {
-          const tx = Math.min(MAXX, s.target.x), ty = clamp(s.target.y, 270, 480);
+          const tx = clamp(s.target.x, MINX, MAXX), ty = clamp(s.target.y, 270, 470);
           const fk = 1 - Math.pow(1 - .22, dt / 16.7);
           s.fist.x += (tx - s.fist.x) * fk; s.fist.y += (ty - s.fist.y) * fk;
           bx = s.fist.x; by = s.fist.y;
         } else {
-          const ix = CLOCK_C.x - 210 * K, iy = CLOCK_C.y - 30;
+          const ix = CLOCK_C.x - 150, iy = CLOCK_C.y - 110;
           const ik = 1 - Math.pow(1 - .05, dt / 16.7);
           s.fist.x += (ix - s.fist.x) * ik; s.fist.y += (iy - s.fist.y) * ik;
           const ph = (now % 1100) / 1100;

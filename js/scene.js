@@ -7,7 +7,7 @@ App.scene = (() => {
   const $ = id => document.getElementById(id);
   const el = {};
   ['stage', 'shake', 'cam', 'clock', 'bellL', 'bellR', 'bar', 'lines', 'display', 'clockCracks', 'looseBell',
-   'arm', 'armOut', 'armFill', 'armCrease', 'hand', 'fingers', 'fist', 'blanket', 'blanketFold', 'hair', 'sleepFace', 'backHair', 'prickles', 'fx', 'roomLight', 'beam', 'blanketShade', 'armHi',
+   'arm', 'armShape', 'armCrease', 'hand', 'fingers', 'fist', 'blanket', 'blanketFold', 'hair', 'sleepFace', 'backHair', 'prickles', 'fx', 'roomLight', 'beam', 'blanketShade', 'armHi', 'bed', 'blanketG', 'bedContact',
    'skyDawn', 'skyMidday', 'skySunset', 'skyNight', 'rooster', 'neighbor', 'cat', 'windowFx', 'wallCracks']
     .forEach(k => { el[k] = $(k); });
 
@@ -15,7 +15,12 @@ App.scene = (() => {
   const M = reduce ? 0.35 : 1;                      // motion scale for shakes and jitters
   const CS = 0.8;                                   // clock scale in the room
   const HOME = { x: 720, y: 600 };                  // clock pivot on the nightstand
-  const SHOULDER = { x: 520, y: 612 };              // right shoulder, under the blanket
+  // the bed and sleeper are drawn at size 1 around the middle of the bed's feet; "Bed and sleeper size"
+  // (Triggers tab, Sleeper) scales them from there, shifted left so the bed stays clear of the nightstand
+  const BED = { x: 415, y: 760 };
+  const bedK = () => App.cfg.bedScale, bedDx = () => -150 * (App.cfg.bedScale - 1);
+  const bedPt = (x, y) => ({ x: BED.x + bedDx() + (x - BED.x) * bedK(), y: BED.y + (y - BED.y) * bedK() });
+  const SHOULDER = { x: 520, y: 612 };              // right shoulder, under the blanket (updated with the bed size)
   const UPPER = 185, FORE = 175;                    // upper arm and forearm lengths (room px)
   const WALL_EDGE = 1466;
   const FLOOR = 760;
@@ -36,7 +41,7 @@ App.scene = (() => {
   function resetState() {
     W.clock = { px: HOME.x, py: HOME.y, rot: 0, sx: 1, sy: 1, jx: 0, hop: 0, bar: 0, droop: 0, swing: 0, bellBase: 16,
       linesOp: 0, linesScale: 1, linesY: 0, text: '5:59', bright: .35, broken: false };
-    W.hand = { mode: 'open', x: 470, y: 680, rot: 0, ax: 70, ay: 63, alpha: 1, fingers: 1 };
+    W.hand = { mode: 'open', x: bedPt(470, 680).x, y: bedPt(470, 680).y, rot: 0, ax: 70, ay: 63, alpha: 1, fingers: 1 };
     W.blanket = { lumpX: 440, h: 62, breath: 0, jerk: 0, roll: 0 };
     W.cam = { x: 705, y: 455, s: 1.36 };
     W.shake = 0;
@@ -98,6 +103,7 @@ App.scene = (() => {
     el.fist.setAttribute('opacity', show && !open ? h.alpha.toFixed(2) : 0);
     el.fingers.setAttribute('transform', `translate(40 0) scale(${h.fingers.toFixed(3)} 1) translate(-40 0)`);
     // arm: shoulder -> elbow -> wrist. Within reach the elbow bends (two-bone IK); beyond it the arm straightens and stretches. Drawn as one smooth curve.
+    Object.assign(SHOULDER, bedPt(520, 612));
     const cuff = handMatrix(h)(16, open ? 40 : 32), S0 = SHOULDER;
     const dx = cuff.x - S0.x, dy = cuff.y - S0.y, d = Math.max(1, Math.hypot(dx, dy)), ux = dx / d, uy = dy / d;
     let ex, ey;
@@ -116,11 +122,21 @@ App.scene = (() => {
     const kx = ex + (ex - (sx + wx) / 2) * .55, ky = ey + (ey - (sy + wy) / 2) * .55;
     const path = `M${sx.toFixed(1)} ${sy.toFixed(1)} Q${kx.toFixed(1)} ${ky.toFixed(1)} ${wx.toFixed(1)} ${wy.toFixed(1)}`;
     const aw = App.cfg.armWidth;
-    el.armOut.setAttribute('d', path); el.armOut.setAttribute('stroke-width', aw + 6);
-    el.armFill.setAttribute('d', path); el.armFill.setAttribute('stroke-width', aw);
+    // the sleeve outline: sample the curve and offset both sides; full at the shoulder, a slight
+    // fullness of fabric past the elbow, narrowing to the wrist
+    const N = 18, L = [], R = [];
+    for (let i = 0; i <= N; i++) {
+      const t = i / N, mt = 1 - t;
+      const x = mt * mt * sx + 2 * mt * t * kx + t * t * wx, y = mt * mt * sy + 2 * mt * t * ky + t * t * wy;
+      const [tx, ty] = unit(2 * mt * (kx - sx) + 2 * t * (wx - kx), 2 * mt * (ky - sy) + 2 * t * (wy - ky));
+      const half = aw * (1.04 - .36 * t + .07 * Math.sin(Math.PI * Math.min(1, t * 1.6))) / 2;
+      L.push(`${(x - ty * half).toFixed(1)} ${(y + tx * half).toFixed(1)}`);
+      R.push(`${(x + ty * half).toFixed(1)} ${(y - tx * half).toFixed(1)}`);
+    }
+    el.armShape.setAttribute('d', `M${L.join(' L')} L${R.reverse().join(' L')} Z`);
     // a soft highlight along the upper-left side of the sleeve
-    el.armHi.setAttribute('d', path); el.armHi.setAttribute('stroke-width', (aw * .3).toFixed(1));
-    el.armHi.setAttribute('transform', `translate(${(-aw * .15).toFixed(1)} ${(-aw * .15).toFixed(1)})`);
+    el.armHi.setAttribute('d', path); el.armHi.setAttribute('stroke-width', (aw * .22).toFixed(1));
+    el.armHi.setAttribute('transform', `translate(${(-aw * .13).toFixed(1)} ${(-aw * .13).toFixed(1)})`);
     // sleeve folds: one across the forearm near the cuff, one in the crook of the elbow when it bends
     const px = -fy, py = fx, cx = cuff.x - fx * 46, cy = cuff.y - fy * 46, r = aw * .32;
     let folds = `M${(cx + px * r).toFixed(1)} ${(cy + py * r).toFixed(1)} q${(-fx * 7 - px * r).toFixed(1)} ${(-fy * 7 - py * r).toFixed(1)} ${(-px * 2 * r).toFixed(1)} ${(-py * 2 * r).toFixed(1)}`;
@@ -138,6 +154,9 @@ App.scene = (() => {
 
   /* ---------- blanket and sleeper ---------- */
   function drawBlanket() {
+    const k0 = bedK(), tf = `translate(${(BED.x + bedDx()).toFixed(1)} ${BED.y}) scale(${k0}) translate(${-BED.x} ${-BED.y})`;
+    el.bed.setAttribute('transform', tf); el.blanketG.setAttribute('transform', tf);
+    const bc = bedPt(415, 760); el.bedContact.setAttribute('cx', bc.x.toFixed(1)); el.bedContact.setAttribute('rx', (215 * k0).toFixed(1));
     // the bed is seen end-on: the blanket is pulled up to the chin, with the shoulders as two bumps
     const b = W.blanket, k = ease(clamp(b.roll, 0, 1));
     const up = b.jerk * 10, br = b.breath * 3;
@@ -308,7 +327,8 @@ App.scene = (() => {
     W.texts.push({ el: t, x, y, t0: performance.now(), dur: o.dur || 900, rise: o.rise ?? 30, drift: o.drift || 0, rot: o.rot || 0, pop: o.pop ?? .35, wave: o.wave || 0 });
   }
   function spawnZ(big) {
-    spawnText(big ? 'Z' : 'z', 452 + rnd(-6, 6), 510, { size: big ? 34 : rnd(20, 28), fill: '#555', dur: 2600, rise: 120, drift: 70, rot: rnd(-12, 8), pop: .15, wave: 8, italic: true });
+    const zp = bedPt(452, 510);
+    spawnText(big ? 'Z' : 'z', zp.x + rnd(-6, 6), zp.y, { size: big ? 34 : rnd(20, 28), fill: '#555', dur: 2600, rise: 120, drift: 70, rot: rnd(-12, 8), pop: .15, wave: 8, italic: true });
   }
   function drawTexts(now) {
     W.texts = W.texts.filter(o => {
@@ -345,7 +365,7 @@ App.scene = (() => {
   }
 
   resetState();
-  return { el, W, CS, HOME, U, SHOULDER, WALL_EDGE, FLOOR, M, reduce,
+  return { el, W, CS, HOME, U, SHOULDER, bedPt, WALL_EDGE, FLOOR, M, reduce,
     clamp, lerp, ease, easeOut, easeOutBack, approach, rnd, wob,
     resetState, ringLook, setAnchor, handMatrix, barTop, pivotToCenter, moveCam, toWorld, worldPerPx,
     spawnText, spawnZ, addCrack, draw };

@@ -10,7 +10,7 @@
     // Pages updates. Ask for the current version (never cached); if this copy is older,
     // reload under a fresh address so the new page and files load.
     (function () {
-      var PAGE_V = '20261020w';
+      var PAGE_V = '20261020x';
       try {
         fetch('version.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
           if (!j || !j.v || j.v === PAGE_V) return;
@@ -23,7 +23,7 @@
     })();
   </script>
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=20261020w">
+  <link rel="stylesheet" href="css/style.css?v=20261020x">
 </head>
 <body>
 
@@ -136,7 +136,7 @@
         <!-- a soft glow of light from the window on the wall and floor below it (color set per time of day) -->
         <ellipse id="beam" cx="1080" cy="560" rx="330" ry="300" fill="url(#beamGrad)"/>
         <!-- contact shadows on the floor -->
-        <ellipse cx="415" cy="760" rx="215" ry="20" fill="url(#contactGrad)"/>
+        <ellipse id="bedContact" cx="415" cy="760" rx="215" ry="20" fill="url(#contactGrad)"/>
         <ellipse cx="722" cy="760" rx="165" ry="18" fill="url(#contactGrad)"/>
       </g>
       <!-- shadows cast on the wall: live copies of each object, offset down and to the right -->
@@ -228,16 +228,19 @@
         <path class="col-pillow" data-shade="" d="M322 566 C318 536 360 532 415 532 C470 532 512 536 508 566 C506 594 470 598 415 598 C360 598 324 594 322 566 Z" fill="#f2f2f2" stroke="#222" stroke-width="3"/>
         <!-- the sleeper's head, facing us; after rolling over only the back of the head shows -->
         <g id="hair" data-shade="">
-          <circle class="col-skin" cx="380" cy="552" r="8" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-          <circle class="col-skin" cx="450" cy="552" r="8" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-          <circle class="col-skin" cx="415" cy="548" r="35" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-          <g id="sleepFace">
-            <path d="M394 556 q6 5 12 0 M424 556 q6 5 12 0" fill="none" stroke="#222" stroke-width="3" stroke-linecap="round"/>
-            <ellipse cx="415" cy="570" rx="4" ry="3" fill="#222"/>
+          <ellipse class="col-skin" cx="382" cy="553" rx="6" ry="9" fill="#d0d0d0" stroke="#222" stroke-width="2.5"/>
+          <ellipse class="col-skin" cx="448" cy="553" rx="6" ry="9" fill="#d0d0d0" stroke="#222" stroke-width="2.5"/>
+          <ellipse class="col-skin" cx="415" cy="549" rx="32" ry="36" fill="#d0d0d0" stroke="#222" stroke-width="2.5"/>
+          <g id="sleepFace" fill="none" stroke="#222" stroke-linecap="round">
+            <path d="M396 556 q6 4 12 0 M422 556 q6 4 12 0" stroke-width="2.2"/>
+            <path d="M395 545 q7 -3 13 -1 M422 544 q7 -2 13 1" stroke-width="1.8" stroke-opacity=".6"/>
+            <path d="M415 556 q-3 7 1 9" stroke-width="1.8" stroke-opacity=".55"/>
+            <path d="M409 573 q6 2.5 12 0" stroke-width="2"/>
           </g>
-          <path class="col-hair" d="M381 550 C376 516 396 506 415 506 C436 506 455 516 449 550 L443 534 L436 543 L430 528 L421 539 L414 525 L406 539 L398 528 L392 543 L386 534 Z" fill="#2b2b2b" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
-          <circle id="backHair" class="col-hair" cx="415" cy="548" r="36" fill="#2b2b2b" stroke="#222" stroke-width="3" opacity="0"/>
-          <path d="M404 508 q-5 -12 3 -17 M418 506 q2 -12 13 -13 M392 512 q-11 -4 -13 -13" fill="none" stroke="#222" stroke-width="3" stroke-linecap="round"/>
+          <!-- short hair, side-swept -->
+          <path class="col-hair" d="M383 551 C376 522 392 507 416 506 C441 505 457 521 448 551 C446 538 441 530 432 526 C420 532 403 532 394 524 C388 532 385 541 383 551 Z" fill="#2b2b2b" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/>
+          <ellipse id="backHair" class="col-hair" cx="415" cy="549" rx="33" ry="37" fill="#2b2b2b" stroke="#222" stroke-width="2.5" opacity="0"/>
+          <path d="M398 513 q14 -6 30 0 M420 507 q5 -6 12 -6" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="2" stroke-linecap="round"/>
         </g>
       </g>
 
@@ -267,41 +270,47 @@
 
       <!-- the sleeper's arm and hand (hand + fist drawings from Throw the Clock) -->
       <g id="arm">
-        <!-- a bendy sleeve: shoulder to elbow to wrist, drawn as an outline stroke with the sleeve color on top -->
-        <path id="armOut" fill="none" stroke="#222" stroke-width="56" stroke-linecap="round" stroke-linejoin="round"/>
-        <path id="armFill" fill="none" stroke="#8c8c8c" stroke-width="50" stroke-linecap="round" stroke-linejoin="round"/>
-        <path id="armHi" fill="none" stroke="#fff" stroke-opacity=".22" stroke-linecap="round" class="look3d"/>
+        <!-- pajama sleeve from the shoulder to the wrist: a tapered shape along a soft curve through the elbow (js/scene.js) -->
+        <path id="armShape" class="col-sleeve" fill="#8c8c8c" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/>
+        <path id="armHi" fill="none" stroke="#fff" stroke-opacity=".2" stroke-linecap="round" class="look3d"/>
         <path id="armCrease" fill="none" stroke="#6f6f6f" stroke-width="2.5" stroke-linecap="round"/>
       </g>
       <g id="hand" data-shade="">
+        <!-- back of the right hand reaching to the right, thumb along the top -->
         <g transform="translate(32 40)">
           <g id="fingers">
-            <rect x="40" y="-22" width="44" height="11" rx="5.5" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-            <rect x="40" y="-11" width="46" height="11" rx="5.5" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-            <rect x="40" y="0" width="43" height="11" rx="5.5" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-            <rect x="40" y="11" width="36" height="11" rx="5.5" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
+            <g transform="rotate(-5 36 -15.5)"><path class="col-skin" d="M36 -21.0 L76.0 -20.1 C83.0 -20.1 83.0 -10.9 76.0 -10.9 L36 -10.0 Z" fill="#d0d0d0" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/><path d="M62.7 -18.7 q1.5 3.2 0 6.5" fill="none" stroke="#222" stroke-opacity=".35" stroke-width="1.6" stroke-linecap="round"/></g>
+            <g transform="rotate(-1.5 37 -4.5)"><path class="col-skin" d="M37 -10.2 L80.7 -9.3 C88.0 -9.3 88.0 0.3 80.7 0.3 L37 1.2 Z" fill="#d0d0d0" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/><path d="M66.0 -7.9 q1.5 3.4 0 6.8" fill="none" stroke="#222" stroke-opacity=".35" stroke-width="1.6" stroke-linecap="round"/></g>
+            <g transform="rotate(2.5 36 6.5)"><path class="col-skin" d="M36 1.0 L77.0 1.9 C84.0 1.9 84.0 11.1 77.0 11.1 L36 12.0 Z" fill="#d0d0d0" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/><path d="M63.3 3.3 q1.5 3.2 0 6.5" fill="none" stroke="#222" stroke-opacity=".35" stroke-width="1.6" stroke-linecap="round"/></g>
+            <g transform="rotate(7 34 16)"><path class="col-skin" d="M34 11.0 L66.5 11.8 C73.0 11.8 73.0 20.2 66.5 20.2 L34 21.0 Z" fill="#d0d0d0" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/><path d="M56.0 13.1 q1.5 2.9 0 5.9" fill="none" stroke="#222" stroke-opacity=".35" stroke-width="1.6" stroke-linecap="round"/></g>
           </g>
-          <rect x="-6" y="-23" width="56" height="46" rx="15" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-          <rect x="16" y="-33" width="32" height="11" rx="5.5" transform="rotate(-14 16 -28)" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-          <rect x="-26" y="-26" width="20" height="52" rx="6" class="col-cuff" fill="#6f6f6f" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
+          <path class="col-skin" d="M-6 -18 C8 -22 28 -24 42 -21 C49 -19 51 -13 50 -5 L50 11 C50 18 46 22 39 23 C26 24 8 21 -6 18 Z" fill="#d0d0d0" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M6 -10 Q24 -15 40 -15 M6 1 Q24 -1 42 -4 M6 11 Q24 12 40 7" fill="none" stroke="#222" stroke-opacity=".12" stroke-width="1.4" stroke-linecap="round"/>
+          <path class="col-skin" d="M2 -14 C9 -24 21 -28 33 -29 C39 -29.5 41 -24 36 -22 C27 -20 19 -16 14 -9 Z" fill="#d0d0d0" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/>
+          <path class="col-cuff" d="M-27 -24 Q-16 -27 -5 -24 Q-2 0 -5 24 Q-16 27 -27 24 Q-30 0 -27 -24 Z" fill="#6f6f6f" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M-22 -18 q-2 18 0 36" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="2" stroke-linecap="round"/>
         </g>
       </g>
       <g id="fist" data-shade="" opacity="0">
+        <!-- the same hand curled into a fist: knuckles to the right, thumb wrapped across the front -->
         <g transform="translate(30 32)">
-          <rect x="-6" y="-25" width="58" height="50" rx="18" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-          <circle cx="50" cy="-16" r="8" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-          <circle cx="53" cy="-5" r="8" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-          <circle cx="53" cy="6" r="8" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-          <circle cx="49" cy="17" r="7.5" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-          <rect x="12" y="-7" width="36" height="11" rx="5.5" class="col-skin" fill="#d0d0d0" stroke="#222" stroke-width="3"/>
-          <rect x="-24" y="-27" width="20" height="54" rx="6" class="col-cuff" fill="#6f6f6f" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
+          <path class="col-skin" d="M-6 -23 C10 -28 34 -28 46 -23 C58 -17 61 15 50 22 C38 28 10 27 -6 23 Z" fill="#d0d0d0" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/>
+          <path class="col-skin" d="M34 -24 C46 -26 56 -20 57 -12 C58 -6 52 -3 44 -4 Z" fill="#d0d0d0" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/>
+          <path class="col-skin" d="M38 -6 C50 -8 59 -3 59 4 C59 10 51 12 43 10 Z" fill="#d0d0d0" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/>
+          <path class="col-skin" d="M37 9 C49 8 58 12 57 18 C56 24 48 25 40 22 Z" fill="#d0d0d0" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/>
+          <path class="col-skin" d="M6 -8 C18 -13 38 -13 46 -8 C50 -5 48 1 42 1 C30 0 18 1 8 4 Z" fill="#d0d0d0" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M14 14 q12 4 26 1" fill="none" stroke="#222" stroke-opacity=".25" stroke-width="1.6" stroke-linecap="round"/>
+          <path class="col-cuff" d="M-25 -25 Q-14 -28 -3 -25 Q0 0 -3 25 Q-14 28 -25 25 Q-28 0 -25 -25 Z" fill="#6f6f6f" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M-20 -19 q-2 19 0 38" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="2" stroke-linecap="round"/>
         </g>
       </g>
 
       <!-- blanket sits in front of the arm so the arm comes out from under the covers -->
-      <path id="blanket" fill="url(#gingham)" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
-      <path id="blanketShade" class="look3d" fill="url(#shade)" pointer-events="none"/>
-      <path id="blanketFold" fill="none" stroke="#222" stroke-width="3" stroke-linecap="round"/>
+      <g id="blanketG">
+        <path id="blanket" fill="url(#gingham)" stroke="#222" stroke-width="3" stroke-linejoin="round"/>
+        <path id="blanketShade" class="look3d" fill="url(#shade)" pointer-events="none"/>
+        <path id="blanketFold" fill="none" stroke="#222" stroke-width="3" stroke-linecap="round"/>
+      </g>
 
       <path id="prickles" fill="none" stroke="#222" stroke-width="2.5" stroke-linecap="round"/>
       <g id="fx"></g>
@@ -351,14 +360,14 @@
   </svg>
 </button>
 
-<script src="js/config.js?v=20261020w"></script>
-<script src="js/audio.js?v=20261020w"></script>
-<script src="js/scene.js?v=20261020w"></script>
-<script src="js/look.js?v=20261020w"></script>
-<script src="js/rounds.js?v=20261020w"></script>
-<script src="js/main.js?v=20261020w"></script>
-<script src="js/sky.js?v=20261020w"></script>
-<script src="js/versions.js?v=20261020w"></script>
-<script src="js/panel.js?v=20261020w"></script>
+<script src="js/config.js?v=20261020x"></script>
+<script src="js/audio.js?v=20261020x"></script>
+<script src="js/scene.js?v=20261020x"></script>
+<script src="js/look.js?v=20261020x"></script>
+<script src="js/rounds.js?v=20261020x"></script>
+<script src="js/main.js?v=20261020x"></script>
+<script src="js/sky.js?v=20261020x"></script>
+<script src="js/versions.js?v=20261020x"></script>
+<script src="js/panel.js?v=20261020x"></script>
 </body>
 </html>
