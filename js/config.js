@@ -233,13 +233,13 @@ window.App = window.App || {};
   // Saved window design (applied as the defaults on top of the per-time-of-day starting values)
   const SAVED_WINDOW = {
     // Dawn
-    winDawnArt: false, winDawnTop: '#dbb3ed', winDawnBottom: '#dacaa8', winDawnSun: true, winDawnSunSize: 14, winDawnSunX: 94, winDawnSunY: 100, winDawnMoon: true, winDawnMoonSize: 9, winDawnMoonX: 40, winDawnMoonY: 6, winDawnStars: 2,
+    winDawnArt: false, winDawnTop: '#dbb3ed', winDawnBottom: '#dacaa8', winDawnSun: true, winDawnSunSize: 14, winDawnSunX: 94, winDawnSunY: 100, winDawnMoon: true, winDawnMoonSize: 9, winDawnMoonX: 40, winDawnMoonY: 6, winDawnStars: 2, winDawnSunColor: '#f4bf62', winDawnMoonColor: '#f4f1d8',
     // Day
-    winDayArt: false, winDayTop: '#eeeac8', winDayBottom: '#b6dcff', winDaySun: true, winDaySunSize: 42, winDaySunX: 71, winDaySunY: 25, winDayClouds: 2, winDayCloudSize: 1.05,
+    winDayArt: false, winDayTop: '#e9e5c1', winDayBottom: '#b6dcff', winDaySun: true, winDaySunSize: 42, winDaySunX: 71, winDaySunY: 25, winDayClouds: 2, winDayCloudSize: 1.05, winDaySunColor: '#f4d362',
     // Sunset
-    winSunsetArt: false, winSunsetTop: '#a70b47', winSunsetBottom: '#e8d188', winSunsetSun: true, winSunsetSunSize: 40, winSunsetSunX: 12, winSunsetSunY: 100, winSunsetMoon: true, winSunsetMoonSize: 22, winSunsetMoonX: 84, winSunsetMoonY: 16, winSunsetStars: 3,
+    winSunsetArt: false, winSunsetTop: '#a70b47', winSunsetBottom: '#e8d188', winSunsetSun: true, winSunsetSunSize: 40, winSunsetSunX: 12, winSunsetSunY: 100, winSunsetMoon: true, winSunsetMoonSize: 22, winSunsetMoonX: 84, winSunsetMoonY: 16, winSunsetStars: 3, winSunsetSunColor: '#df795b', winSunsetMoonColor: '#e9e8c1', winSunsetStarColor: '#c0bd76',
     // Night
-    winNightArt: false, winNightTop: '#2b2c6b', winNightBottom: '#3e2e53', winNightMoon: true, winNightMoonSize: 60, winNightMoonX: 67, winNightMoonY: 28, winNightMoonPhase: 'crescent', winNightStars: 89, winNightStarSize: 0.7, winNightComet: true, winNightPlanets: 1, winNightPlanetSize: 0.75,
+    winNightArt: false, winNightTop: '#2b2c6b', winNightBottom: '#3e2e53', winNightMoon: true, winNightMoonSize: 60, winNightMoonX: 67, winNightMoonY: 28, winNightMoonPhase: 'crescent', winNightStars: 89, winNightStarSize: 0.7, winNightComet: true, winNightPlanets: 1, winNightPlanetSize: 0.75, winNightSunColor: '#f4f062', winNightMoonColor: '#f1f2b5', winNightStarColor: '#bfb489', winNightCometColor: '#1e8b85', winNightPlanetColor: '#b59f48',
   };
 
   const DEFAULTS = {
@@ -259,15 +259,15 @@ window.App = window.App || {};
     fistSwingPx: 21, fistSwingMs: 1300, fistReachPx: 380, fistFadeMs: 2500,
     throwGrabPx: 131, throwDragPx: 112,
     // color panel
-    colWall: '#ececec', colSideWall: '#bcbcbc', colFloor: '#d2d2d2', colFloorLine: '#bcbcbc', colBaseboard: '#bdbdbd',
+    colWall: '#ececec', colSideWall: '#bcbcbc', colFloor: '#614c4c', colFloorLine: '#bcbcbc', colBaseboard: '#bdbdbd',
     colPage: '#d6d6d6', colInk: '#222222',
-    colHeadboard: '#8c8c8c', colBedBase: '#9c9c9c', colSheet: '#e2e2e2', colPillow: '#f2f2f2',
-    colBlanket: '#3a6fb0', colBlanketCheck: '#8f8f8f', colLegs: '#7a7a7a',
+    colHeadboard: '#835d5c', colBedBase: '#9c9c9c', colSheet: '#5ab8e2', colPillow: '#f2f2f2',
+    colBlanket: '#3a6fb0', colBlanketCheck: '#c34e36', colLegs: '#0c130a',
     colHair: '#2b2b2b', colSleeve: '#38778c', colSkin: '#d6a76a', colCuff: '#a2b3b9',
     colStandTop: '#b03030', colStandBody: '#bd4c4c', colDrawer: '#835d5d', colKnob: '#2c2a2a',
     colClockBody: '#db0c33', colClockFeet: '#041501', colScreen: '#2b2b2b', colDigits: '#4fff37', colBell: '#dcb369', colSnooze: '#e2e2e2',
-    colRoosterBody: '#f2f2f2', colRoosterComb: '#5e5e5e', colRoosterWattle: '#5e5e5e', colRoosterBeak: '#b4b4b4', colRoosterEye: '#ffffff', colRoosterPupil: '#222222',
-    colNbSkin: '#d0d0d0', colNbHair: '#3c3c3c', colNbShirt: '#8e8e8e', colNbEyes: '#ffffff', colNbPupils: '#222222', colNbMouth: '#4a4a4a',
+    colRoosterBody: '#f2f2f2', colRoosterComb: '#cc1010', colRoosterWattle: '#cc110f', colRoosterBeak: '#ed9740', colRoosterEye: '#ffffff', colRoosterPupil: '#222222',
+    colNbSkin: '#e7d1ba', colNbHair: '#3c3c3c', colNbShirt: '#559220', colNbEyes: '#ffffff', colNbPupils: '#222222', colNbMouth: '#4a4a4a',
     colCat: '#111111', colCatRim: '#d9d9d9',
     colBulbGlass: '#e1e0c8', colBulbGlow: '#f5f25c', colSocket: '#7a7a7a', colBulbLine: '#222222', colChain: '#555555',
     colResetTag: '#cfa35c', colFirefly: '#2b2b2b', colFireflyTail: '#e8e8e8', colWings: '#555555', colBlackout: '#0b0b0b',
