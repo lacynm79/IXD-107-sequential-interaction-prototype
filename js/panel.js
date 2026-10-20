@@ -137,7 +137,7 @@
     try { startOpen = localStorage.getItem(storageKey) !== '0'; } catch (_) { /* storage unavailable */ }
     setOpen(startOpen);
 
-    registry.push({ keys, inputs, get refresh() { return refresh; } });
+    registry.push({ keys, inputs, get refresh() { return refresh; }, text: () => settingsText(false) });
     restoreBtn.addEventListener('click', () => {
       if (App.versions) App.versions.beforeReset(`${title} defaults`);   // so this can be undone
       C.restore(keys);
@@ -146,7 +146,7 @@
       flash('Defaults restored.');
     });
 
-    function settingsText() {
+    function settingsText(withInstruction = true) {
       const lines = [copyTitle, ''];
       schema.forEach(([group, rows]) => {
         lines.push(group);
@@ -160,7 +160,7 @@
         });
         lines.push('');
       });
-      lines.push(INSTRUCTION);
+      if (withInstruction) lines.push(INSTRUCTION);
       return lines.join('\n');
     }
     let flashT = null;
@@ -244,11 +244,26 @@
     autoBox.addEventListener('change', () => { V.setAuto(autoBox.checked); flash(autoBox.checked ? 'Auto-save is on.' : 'Auto-save is off. Use Save version to keep your edits.'); });
     const name = h('input', { type: 'text', class: 'verName', placeholder: 'Name (optional)', maxlength: '40', 'aria-label': 'Version name' });
     const saveBtn = h('button', { type: 'button', class: 'act primary', text: 'Save version' });
+    // every panel's values in one go, so they can be sent to Claude to become the saved defaults
+    const copyAll = h('button', { type: 'button', class: 'act copyAll', text: 'Copy all settings' });
+    copyAll.addEventListener('click', () => {
+      body.querySelectorAll('.copyBox').forEach(n => n.remove());
+      const text = registry.map(r => r.text()).join('\n') + '\n' + INSTRUCTION;
+      const fallback = () => {
+        const ta = h('textarea', { class: 'copyBox', readonly: '' }); ta.value = text;
+        copyAll.after(ta); ta.select();
+        let done = false; try { done = document.execCommand('copy'); } catch (_) { done = false; }
+        if (done) { ta.remove(); flash('All settings copied. Paste them to Claude.'); }
+        else { status.textContent = 'Copying is blocked here. Select the text above and copy it.'; ta.focus(); ta.select(); }
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => flash('All settings copied. Paste them to Claude.'), fallback);
+      else fallback();
+    });
     const status = h('p', { class: 'status', 'aria-live': 'polite' });
     const ul = h('ul', { class: 'verList' });
     body.append(
       h('label', { class: 'check', for: 'autoSave' }, autoBox, h('span', { text: 'Auto-save my edits in this browser' })),
-      h('div', { class: 'verSave' }, name, saveBtn), status, ul,
+      h('div', { class: 'verSave' }, name, saveBtn), copyAll, status, ul,
       h('p', { class: 'note', text: V.available
         ? 'Versions are kept in this browser only. Auto-snapshots are taken while you edit (at most one a minute) and before every restore. To make values permanent for everyone, use Copy settings and send it to Claude.'
         : 'This browser is blocking storage here, so versions can\u2019t be kept. Use Copy settings to keep your values.' }));
