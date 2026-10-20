@@ -5,8 +5,25 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>Five More Minutes</title>
   <meta name="description" content="A sequential interaction prototype: snooze it, slap it, punch it, throw it.">
+  <script>
+    // Stale-copy guard: browsers can keep an old copy of this page for a while after GitHub
+    // Pages updates. Ask for the current version (never cached); if this copy is older,
+    // reload under a fresh address so the new page and files load.
+    (function () {
+      var PAGE_V = '20261020l';
+      try {
+        fetch('version.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+          if (!j || !j.v || j.v === PAGE_V) return;
+          var u = new URL(location.href);
+          if (u.searchParams.get('fresh') === j.v) return;           // already tried once
+          u.searchParams.set('fresh', j.v);
+          location.replace(u.toString());
+        }).catch(function () {});
+      } catch (e) { /* older browsers: nothing to do */ }
+    })();
+  </script>
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=20261020k">
+  <link rel="stylesheet" href="css/style.css?v=20261020l">
 </head>
 <body>
 
@@ -227,9 +244,10 @@
       <g id="chain">
         <path id="chainLine" class="col-chain" d="M72 112 L72 176" stroke="#555" stroke-width="2.5" stroke-dasharray="3 3"/>
         <g id="chainBead">
-          <circle class="col-resetTag" cx="72" cy="187" r="11" fill="#fff" stroke="#222" stroke-width="2.5"/>
-          <path d="M78 187 a6 6 0 1 1 -1.76 -4.24" fill="none" stroke="#222" stroke-width="2.2" stroke-linecap="round"/>
-          <path d="M76.7 178.2 l-0.46 4.56 l-4.5 -0.8" fill="none" stroke="#222" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle class="col-resetTag" cx="72" cy="187" r="11" fill="#fff" stroke="#222" stroke-width="2"/>
+          <!-- reset arrow: kept well inside the tag's rim, thicker line, solid head -->
+          <path id="resetArrow" d="M77 188.2 A5 5 0 1 1 75.6 183.4" fill="none" stroke="#222" stroke-width="2.6" stroke-linecap="round"/>
+          <path id="resetArrowHead" d="M73.6 181.2 L78.9 181.0 L77.6 186.0 Z" fill="#222" stroke="#222" stroke-width="0.8" stroke-linejoin="round"/>
         </g>
       </g>
     </g>
@@ -242,13 +260,13 @@
   </svg>
 </button>
 
-<script src="js/config.js?v=20261020k"></script>
-<script src="js/audio.js?v=20261020k"></script>
-<script src="js/scene.js?v=20261020k"></script>
-<script src="js/rounds.js?v=20261020k"></script>
-<script src="js/main.js?v=20261020k"></script>
-<script src="js/sky.js?v=20261020k"></script>
-<script src="js/versions.js?v=20261020k"></script>
-<script src="js/panel.js?v=20261020k"></script>
+<script src="js/config.js?v=20261020l"></script>
+<script src="js/audio.js?v=20261020l"></script>
+<script src="js/scene.js?v=20261020l"></script>
+<script src="js/rounds.js?v=20261020l"></script>
+<script src="js/main.js?v=20261020l"></script>
+<script src="js/sky.js?v=20261020l"></script>
+<script src="js/versions.js?v=20261020l"></script>
+<script src="js/panel.js?v=20261020l"></script>
 </body>
 </html>

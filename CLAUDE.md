@@ -2,7 +2,7 @@
 
 - Commit to `main` unless told otherwise.
 - Live web pages go in the repository root (`/`), which GitHub Pages serves from `main` / root.
-- The CSS and JS links in `index.html` carry a `?v=` version tag so browsers don't keep stale copies from GitHub Pages' cache. Bump it (e.g. `?v=YYYYMMDDx`) whenever `css/` or `js/` changes.
+- The CSS and JS links in `index.html` carry a `?v=` version tag so browsers don't keep stale copies from GitHub Pages' cache. Bump it (e.g. `?v=YYYYMMDDx`) whenever `css/` or `js/` changes, and set the same value in `version.json` and in `PAGE_V` at the top of `index.html` (the stale-copy guard reloads old cached pages when they differ).
 - Every time a change is applied to the live site, push it to `main` and also publish the root page (with its `css/`, `js/` and `assets/` files) to the Claude artifact preview, so the change can be viewed right away while GitHub Pages builds and deploys. Update the same artifact each time (https://claude.ai/artifact/VVpES7H69aPkkaVbZxCbeY, pass it as `url` from a new session) rather than creating a new one, and give the user its link.
 
 ## How to ask questions
