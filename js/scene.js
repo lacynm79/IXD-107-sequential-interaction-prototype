@@ -7,7 +7,7 @@ App.scene = (() => {
   const $ = id => document.getElementById(id);
   const el = {};
   ['stage', 'shake', 'cam', 'clock', 'bellL', 'bellR', 'bar', 'lines', 'display', 'clockCracks', 'looseBell',
-   'arm', 'armRect', 'armCrease', 'hand', 'fingers', 'fist', 'blanket', 'blanketFold', 'hair', 'sleepFace', 'backHair', 'prickles', 'fx',
+   'arm', 'armOut', 'armFill', 'armCrease', 'hand', 'fingers', 'fist', 'blanket', 'blanketFold', 'hair', 'sleepFace', 'backHair', 'prickles', 'fx',
    'skyDawn', 'skyMidday', 'skySunset', 'skyNight', 'rooster', 'neighbor', 'cat', 'windowFx', 'wallCracks']
     .forEach(k => { el[k] = $(k); });
 
@@ -16,6 +16,7 @@ App.scene = (() => {
   const CS = 0.8;                                   // clock scale in the room
   const HOME = { x: 720, y: 600 };                  // clock pivot on the nightstand
   const SHOULDER = { x: 520, y: 612 };              // right shoulder, under the blanket
+  const UPPER = 185, FORE = 175;                    // upper arm and forearm lengths (room px)
   const WALL_EDGE = 1466;
   const FLOOR = 760;
   const U = 1.6;                                    // Throw the Clock's unit (clock width / 140)
@@ -96,15 +97,36 @@ App.scene = (() => {
     el.hand.setAttribute('opacity', show && open ? h.alpha.toFixed(2) : 0);
     el.fist.setAttribute('opacity', show && !open ? h.alpha.toFixed(2) : 0);
     el.fingers.setAttribute('transform', `translate(40 0) scale(${h.fingers.toFixed(3)} 1) translate(-40 0)`);
-    // arm: a capsule from the cuff back under the covers to the shoulder
-    const cuff = handMatrix(h)(16, open ? 40 : 32);
-    const dx = SHOULDER.x - cuff.x, dy = SHOULDER.y - cuff.y, len = Math.hypot(dx, dy), ang = Math.atan2(dy, dx) * 180 / Math.PI;
-    el.arm.setAttribute('transform', `translate(${cuff.x.toFixed(1)} ${cuff.y.toFixed(1)}) rotate(${ang.toFixed(2)})`);
-    const aw = App.cfg.armWidth, cr = aw * .34;
-    el.armRect.setAttribute('x', -12); el.armRect.setAttribute('width', (len + 40).toFixed(1));
-    el.armRect.setAttribute('y', -aw / 2); el.armRect.setAttribute('height', aw); el.armRect.setAttribute('rx', aw / 2);
-    const c1 = (len * .32).toFixed(1), c2 = (len * .52).toFixed(1);
-    el.armCrease.setAttribute('d', `M${c1} ${-cr} q8 ${cr} 0 ${2 * cr} M${c2} ${-cr} q8 ${cr} 0 ${2 * cr}`);
+    // arm: shoulder -> elbow -> wrist. Within reach the elbow bends (two-bone IK); beyond it the arm straightens and stretches. Drawn as one smooth curve.
+    const cuff = handMatrix(h)(16, open ? 40 : 32), S0 = SHOULDER;
+    const dx = cuff.x - S0.x, dy = cuff.y - S0.y, d = Math.max(1, Math.hypot(dx, dy)), ux = dx / d, uy = dy / d;
+    let ex, ey;
+    if (d >= UPPER + FORE) { const f = UPPER / (UPPER + FORE); ex = S0.x + dx * f; ey = S0.y + dy * f; }
+    else {
+      const a = (UPPER * UPPER - FORE * FORE + d * d) / (2 * d), hgt = Math.sqrt(Math.max(0, UPPER * UPPER - a * a));
+      // the elbow arches up and outward (toward up-right); the side blends smoothly so it never pops across
+      const side = clamp((-uy * .2 - ux) * 4, -1, 1);
+      ex = S0.x + ux * a - uy * hgt * side; ey = S0.y + uy * a + ux * hgt * side;
+    }
+    const unit = (x, y) => { const l = Math.hypot(x, y) || 1; return [x / l, y / l]; };
+    const [ax, ay] = unit(ex - S0.x, ey - S0.y), [fx, fy] = unit(cuff.x - ex, cuff.y - ey);
+    const sx = S0.x - ax * 24, sy = S0.y - ay * 24;                 // start a little behind the shoulder
+    const wx = cuff.x + fx * 12, wy = cuff.y + fy * 12;             // and end tucked into the cuff
+    // control point a touch past the elbow so the curve passes close to it: a soft, rounded bend
+    const kx = ex + (ex - (sx + wx) / 2) * .55, ky = ey + (ey - (sy + wy) / 2) * .55;
+    const path = `M${sx.toFixed(1)} ${sy.toFixed(1)} Q${kx.toFixed(1)} ${ky.toFixed(1)} ${wx.toFixed(1)} ${wy.toFixed(1)}`;
+    const aw = App.cfg.armWidth;
+    el.armOut.setAttribute('d', path); el.armOut.setAttribute('stroke-width', aw + 6);
+    el.armFill.setAttribute('d', path); el.armFill.setAttribute('stroke-width', aw);
+    // sleeve folds: one across the forearm near the cuff, one in the crook of the elbow when it bends
+    const px = -fy, py = fx, cx = cuff.x - fx * 46, cy = cuff.y - fy * 46, r = aw * .32;
+    let folds = `M${(cx + px * r).toFixed(1)} ${(cy + py * r).toFixed(1)} q${(-fx * 7 - px * r).toFixed(1)} ${(-fy * 7 - py * r).toFixed(1)} ${(-px * 2 * r).toFixed(1)} ${(-py * 2 * r).toFixed(1)}`;
+    if (d < (UPPER + FORE) * .95) {
+      const [bx, by] = unit(-(ax + fx) || 0, -(ay + fy) || 0);          // inner side of the elbow
+      const mx = ex + bx * aw * .18, my = ey + by * aw * .18;
+      folds += ` M${(mx - ax * aw * .3).toFixed(1)} ${(my - ay * aw * .3).toFixed(1)} Q${(mx + bx * 6).toFixed(1)} ${(my + by * 6).toFixed(1)} ${(mx + fx * aw * .3).toFixed(1)} ${(my + fy * aw * .3).toFixed(1)}`;
+    }
+    el.armCrease.setAttribute('d', folds);
     el.arm.setAttribute('opacity', show ? h.alpha.toFixed(2) : 0);
   }
   // anchor presets in the drawings' own units
@@ -116,14 +138,18 @@ App.scene = (() => {
     // the bed is seen end-on: the blanket is pulled up to the chin, with the shoulders as two bumps
     const b = W.blanket, k = ease(clamp(b.roll, 0, 1));
     const up = b.jerk * 10, br = b.breath * 3;
-    const L = 588 - up - br + 8 * k, R = 588 - up - br - 10 * k;   // rolling over: one shoulder comes up
+    // the body follows the arm: the right shoulder lifts as the hand reaches up, and the head leans toward it
+    const hd = W.hand, out = hd.mode !== 'hidden' ? clamp((SHOULDER.y - hd.y) / 260, 0, 1) * hd.alpha : 0;
+    b.reach = (b.reach || 0) + (out - (b.reach || 0)) * .12;
+    const L = 588 - up - br + 8 * k, R = 588 - up - br - 10 * k - 10 * b.reach;   // rolling over: one shoulder comes up
     const d = `M256 704 L258 648 C258 ${(612 - br).toFixed(1)} 276 ${L.toFixed(1)} 318 ${L.toFixed(1)} ` +
       `Q352 ${(582 - up).toFixed(1)} 384 ${(584 - up).toFixed(1)} L446 ${(584 - up).toFixed(1)} Q478 ${(582 - up).toFixed(1)} 512 ${R.toFixed(1)} ` +
       `C554 ${R.toFixed(1)} 572 ${(612 - br).toFixed(1)} 572 648 L574 704 Q415 718 256 704 Z`;
     el.blanket.setAttribute('d', d);
     el.blanketFold.setAttribute('d', `M300 ${(600 - up).toFixed(1)} Q415 ${(608 - up).toFixed(1)} 530 ${(600 - up).toFixed(1)}`);
     // rolling over: they turn to face the headboard, so the face gives way to the back of the head
-    el.hair.setAttribute('transform', `translate(0 ${(-b.jerk * 8).toFixed(1)})`);
+    const lean = b.reach * (1 - k);
+    el.hair.setAttribute('transform', `translate(${(lean * 5).toFixed(1)} ${(-b.jerk * 8 - lean * 3).toFixed(1)}) rotate(${(lean * 8).toFixed(2)} 415 560)`);
     el.sleepFace.setAttribute('opacity', (1 - k).toFixed(3));
     el.backHair.setAttribute('opacity', k.toFixed(3));
   }

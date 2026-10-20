@@ -129,7 +129,7 @@ App.rounds = (() => {
     function start(now) {
       s = { hits: 0, done: false, busy: false, bounce: null, lastSlap: -1e9,
         sy: { v: 1, t: 1, r: .1 }, sx: { v: 1, t: 1, r: .1 }, droop: { v: 0, t: 0, r: .1 }, tilt: { v: 0, t: 0, r: .03 },
-        hy: { v: 0, t: 0, r: .1 }, hx: { v: 0, t: 0, r: .1 }, ring: { v: 1, t: 1, r: .05 }, bar: { v: 0, t: 0, r: .1 },
+        hy: { v: 0, t: 0, r: .1 }, hx: { v: 0, t: 0, r: .1 }, rot: { v: 0, t: 0, r: .2 }, ring: { v: 1, t: 1, r: .05 }, bar: { v: 0, t: 0, r: .1 },
         lastInput: now, contact: false };
       clear();
     }
@@ -144,25 +144,29 @@ App.rounds = (() => {
       s.lastSlap = now; s.busy = true;
       s.lastInput = now; clear();
       s.hits++; const h = s.hits, last = h >= N, rest = at(REST, h / N);
-      // contact: squish it down, droop the bells, cut the ring (deeper each slap)
-      s.contact = true; s.bounce = null;
+      // wind-up: a quick lift with the fingers cocked back, then the drop
+      set('hx', -6, .5); set('hy', -20, .55); set('rot', -7, .45);
+      if (last) s.done = true;
       const k = App.cfg.slapSquash;
       const sc = 1 - (1 - (last ? REST[4] * .82 : rest * .55)) * k;
-      ['sy', 'sx', 'droop', 'bar', 'tilt'].forEach(n => { s[n].t = s[n].v; });
-      set('sy', sc, .35); set('sx', 1 + (last ? .32 : .22) * k, .35); set('droop', 58, .35); set('bar', 10, .35); set('ring', 0, .6);
-      set('hx', 0, .3); set('hy', barTopAt(sc) + 10 - REST_PALM.y, .38);
-      setTimeout(A.thud, 40);
+      later(60, () => {
+        // contact: squish it down, droop the bells, cut the ring (deeper each slap); the palm lands flat-to-forward
+        s.contact = true; s.bounce = null;
+        ['sy', 'sx', 'droop', 'bar', 'tilt'].forEach(n => { s[n].t = s[n].v; });
+        set('sy', sc, .35); set('sx', 1 + (last ? .32 : .22) * k, .35); set('droop', 58, .35); set('bar', 10, .35); set('ring', 0, .6);
+        set('hx', 4, .3); set('hy', barTopAt(sc) + 10 - REST_PALM.y, .42); set('rot', 8, .35);
+      });
+      setTimeout(A.thud, 100);
       // the neighbor flinches every time
       seq().react('slap', h);
-      if (last) s.done = true;
-      // the hand peels off and the clock springs back up to full height, a little quieter each time
-      later(260, () => { s.contact = false; set('hy', 0, last ? .03 : .05); });
-      later(300, () => {
+      // the hand peels off and floats back up, and the clock springs back to full height, a little quieter each time
+      later(320, () => { s.contact = false; set('hy', 0, last ? .03 : .06); set('hx', 0, .08); set('rot', 0, .08); });
+      later(360, () => {
         s.bounce = { t0: performance.now(), from: { sy: s.sy.v, sx: s.sx.v, droop: s.droop.v, bar: s.bar.v, tilt: s.tilt.v } };
         A.pop();
       });
-      if (!last) later(650, () => set('ring', at(RING, h / N), .012));
-      else later(450, () => seq().done(1));
+      if (!last) later(710, () => set('ring', at(RING, h / N), .012));
+      else later(510, () => seq().done(1));
     }
     function miss(p) {
       if (s.contact || s.done) return;
@@ -176,7 +180,7 @@ App.rounds = (() => {
     }
     function update(t, dt) {
       const f = Math.min(3, dt / 16.7);
-      ['sy', 'sx', 'droop', 'tilt', 'hy', 'hx', 'ring', 'bar'].forEach(k => { const o = s[k]; o.v += (o.t - o.v) * (1 - Math.pow(1 - o.r, f)); });
+      ['sy', 'sx', 'droop', 'tilt', 'hy', 'hx', 'rot', 'ring', 'bar'].forEach(k => { const o = s[k]; o.v += (o.t - o.v) * (1 - Math.pow(1 - o.r, f)); });
       if (s.bounce) {
         // bounce-back: from the squished shape to full height with the chosen curve
         const k = clamp((t - s.bounce.t0) / App.cfg.slapBounceMs, 0, 1), e = App.config.ease('slapBounceEase')(k), b = s.bounce.from;
@@ -194,7 +198,7 @@ App.rounds = (() => {
         const ph = (t / 1000) % 1.5; if (ph < .6) pat = Math.abs(Math.sin(ph * Math.PI / .15)) * 13 * M;
       }
       const h = W.hand;
-      h.mode = 'open'; S.setAnchor('palm'); h.fingers = 1; h.alpha = 1; h.rot = 0;
+      h.mode = 'open'; S.setAnchor('palm'); h.fingers = 1; h.alpha = 1; h.rot = s.rot.v;
       h.x = REST_PALM.x + s.hx.v; h.y = REST_PALM.y + s.hy.v + pat;
       seq().react('slapRing', ring);
     }

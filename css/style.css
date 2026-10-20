@@ -219,6 +219,7 @@ body { background: var(--colPage, #d6d6d6); }
 #stage .col-legs { fill: var(--colLegs); }
 #stage .col-hair { fill: var(--colHair); }
 #stage .col-sleeve { fill: var(--colSleeve); }
+#stage #armFill { stroke: var(--colSleeve); }
 #stage .col-skin { fill: var(--colSkin); }
 #stage .col-cuff { fill: var(--colCuff); }
 #stage .col-standTop { fill: var(--colStandTop); }

@@ -10,7 +10,7 @@
     // Pages updates. Ask for the current version (never cached); if this copy is older,
     // reload under a fresh address so the new page and files load.
     (function () {
-      var PAGE_V = '20261020t';
+      var PAGE_V = '20261020u';
       try {
         fetch('version.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
           if (!j || !j.v || j.v === PAGE_V) return;
@@ -23,7 +23,7 @@
     })();
   </script>
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/style.css?v=20261020t">
+  <link rel="stylesheet" href="css/style.css?v=20261020u">
 </head>
 <body>
 
@@ -194,7 +194,9 @@
 
       <!-- the sleeper's arm and hand (hand + fist drawings from Throw the Clock) -->
       <g id="arm">
-        <rect id="armRect" class="col-sleeve" x="0" y="-25" width="200" height="50" rx="25" fill="#8c8c8c" stroke="#222" stroke-width="3"/>
+        <!-- a bendy sleeve: shoulder to elbow to wrist, drawn as an outline stroke with the sleeve color on top -->
+        <path id="armOut" fill="none" stroke="#222" stroke-width="56" stroke-linecap="round" stroke-linejoin="round"/>
+        <path id="armFill" fill="none" stroke="#8c8c8c" stroke-width="50" stroke-linecap="round" stroke-linejoin="round"/>
         <path id="armCrease" fill="none" stroke="#6f6f6f" stroke-width="2.5" stroke-linecap="round"/>
       </g>
       <g id="hand">
@@ -272,13 +274,13 @@
   </svg>
 </button>
 
-<script src="js/config.js?v=20261020t"></script>
-<script src="js/audio.js?v=20261020t"></script>
-<script src="js/scene.js?v=20261020t"></script>
-<script src="js/rounds.js?v=20261020t"></script>
-<script src="js/main.js?v=20261020t"></script>
-<script src="js/sky.js?v=20261020t"></script>
-<script src="js/versions.js?v=20261020t"></script>
-<script src="js/panel.js?v=20261020t"></script>
+<script src="js/config.js?v=20261020u"></script>
+<script src="js/audio.js?v=20261020u"></script>
+<script src="js/scene.js?v=20261020u"></script>
+<script src="js/rounds.js?v=20261020u"></script>
+<script src="js/main.js?v=20261020u"></script>
+<script src="js/sky.js?v=20261020u"></script>
+<script src="js/versions.js?v=20261020u"></script>
+<script src="js/panel.js?v=20261020u"></script>
 </body>
 </html>
