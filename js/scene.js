@@ -120,7 +120,7 @@ App.scene = (() => {
     el.blanketFold.setAttribute('d', `M344 ${578 - b.jerk * 4} q${40 + b.roll * 10} -${12 + b.roll * 6} ${84 + b.roll * 20} -6`);
     // rolling over: the head turns on the pillow
     const k = ease(clamp(b.roll, 0, 1));
-    el.hair.setAttribute('transform', `translate(${(-30 * k).toFixed(1)} ${(-b.jerk * 8 + 4 * k).toFixed(1)}) translate(300 540) scale(${(1 - 2 * k).toFixed(3)} 1) translate(-300 -540)`);
+    el.hair.setAttribute('transform', `translate(0 ${(-b.jerk * 8).toFixed(1)}) translate(300 540) scale(${(1 - 2 * k).toFixed(3)} 1) translate(-300 -540)`);
     // after rolling over they face away: only the back of the head shows
     el.sleepFace.setAttribute('opacity', (1 - k).toFixed(3));
     el.backHair.setAttribute('opacity', k.toFixed(3));

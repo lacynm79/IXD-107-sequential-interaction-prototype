@@ -37,8 +37,7 @@ App.versions = (() => {
   }
 
   // on load: bring back the last edits if auto-save is on
-  // Not on GitHub Pages: that site always shows the saved defaults (the same for every visitor),
-  // so an old auto-save in this browser can't hide newer defaults there.
+  // Only where the panels are shown. It stores just the edits, so newer saved defaults still come through.
   if (auto && C.tools) { const cur = get(K_CUR, null); if (cur) apply(cur); }
 
   // while editing: keep the current state, and take an automatic snapshot at most once a minute
