@@ -1,7 +1,7 @@
 /* Layout: one full-bleed grayscale bedroom stage, letterboxed to 16:9. The reset bulb hangs
    from the top-left corner. Single light grayscale look, kept from all four studies. */
 :root {
-  --bulbH: clamp(100px, 19vh, 240px);
+  --bulbH: clamp(130px, 26vh, 320px);
   --ground: #d6d6d6;
   --ink: #222222;
   --room: #ececec;
@@ -52,7 +52,7 @@ body {
   position: fixed;
   top: 0;
   left: max(12px, env(safe-area-inset-left, 0px));
-  /* scales with the screen like the room does (138 px tall on a 720 px-high window) */
+  /* scales with the screen like the room does (about 187 px tall on a 720 px-high window) */
   height: var(--bulbH);
   width: calc(var(--bulbH) * 120 / 230);
   padding: 0;
@@ -78,7 +78,7 @@ body {
 #kbd:focus-visible + #hint { outline: none; }
 
 @media (max-width: 600px) {
-  :root { --bulbH: clamp(90px, 19vh, 140px); }
+  :root { --bulbH: clamp(110px, 24vh, 190px); }
 }
 
 /* ---------- control panel: floats on the left, below the reset bulb ---------- */

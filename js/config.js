@@ -218,6 +218,18 @@ window.App = window.App || {};
     return d;
   };
 
+  // Saved window design (applied as the defaults on top of the per-time-of-day starting values)
+  const SAVED_WINDOW = {
+    // Dawn
+    winDawnArt: false, winDawnTop: '#dbb3ed', winDawnBottom: '#dacaa8', winDawnSun: true, winDawnSunSize: 14, winDawnSunX: 94, winDawnSunY: 100, winDawnMoon: true, winDawnMoonSize: 9, winDawnMoonX: 40, winDawnMoonY: 6, winDawnStars: 2,
+    // Day
+    winDayArt: false, winDayTop: '#eeeac8', winDayBottom: '#b6dcff', winDaySun: true, winDaySunSize: 42, winDaySunX: 71, winDaySunY: 25, winDayClouds: 2, winDayCloudSize: 1.05,
+    // Sunset
+    winSunsetArt: false, winSunsetTop: '#a70b47', winSunsetBottom: '#e8d188', winSunsetSun: true, winSunsetSunSize: 40, winSunsetSunX: 12, winSunsetSunY: 100, winSunsetMoon: true, winSunsetMoonSize: 22, winSunsetMoonX: 84, winSunsetMoonY: 16, winSunsetStars: 3,
+    // Night
+    winNightArt: false, winNightTop: '#2b2c6b', winNightBottom: '#3e2e53', winNightMoon: true, winNightMoonSize: 60, winNightMoonX: 67, winNightMoonY: 28, winNightMoonPhase: 'crescent', winNightStars: 89, winNightStarSize: 0.7, winNightComet: true, winNightPlanets: 1, winNightPlanetSize: 0.75,
+  };
+
   const DEFAULTS = {
     volume: 90, shake: 1, lullMs: 3600,
     camMs: 2400, camEase: 'easeInOut',
@@ -247,6 +259,7 @@ window.App = window.App || {};
     colResetTag: '#ffffff', colFirefly: '#2b2b2b', colFireflyTail: '#e8e8e8', colWings: '#555555', colBlackout: '#0b0b0b',
     // window panel
     ...windowDefaults(),
+    ...SAVED_WINDOW,
   };
 
   // The motion panel is hidden. Set SHOW_PANEL to true to bring the same panel back
